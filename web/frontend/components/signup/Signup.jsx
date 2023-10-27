@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import "./style.css";
+import "../login/style.css";
 
-export function Login() {
+export function Signup() {
     return (
         <div className="main-container">
             <div className="logo-image">
@@ -9,17 +9,25 @@ export function Login() {
             </div>
             <div className="inner-container">
                 <div className="heading1">
-                    Sign In to FastCourier
+                    Create an Account
                 </div>
                 <div className="heading2">
-                    <span>New Here? </span>
-                    <Link to="/signup" style={{textDecoration: "none"}}>
-                        <span className="text-button"> Create an Account </span>
+                    <span>Already have an account? </span>
+                    <Link to="/login" style={{textDecoration: "none"}}>
+                        <span className="text-button"> Sign in here</span>
                     </Link>
                 </div>
                 <div className="input-container">
                     <div className="input-lebel">
                         Email
+                    </div>
+                    <div className="input-field">
+                        <input className="input-field-text" type="text" />
+                    </div>
+                </div>
+                <div className="input-container">
+                    <div className="input-lebel">
+                        Company (Optional)
                     </div>
                     <div className="input-field">
                         <input className="input-field-text" type="text" />
@@ -33,8 +41,16 @@ export function Login() {
                         <input className="input-field-text" type="password" />
                     </div>
                 </div>
+                <div className="input-container">
+                    <div className="input-lebel">
+                        Confirm Password
+                    </div>
+                    <div className="input-field">
+                        <input className="input-field-text" type="password" />
+                    </div>
+                </div>
                 <button className="submit-btn" variant="primary">
-                    Continue
+                    Submit
                 </button>
             </div>
         </div>

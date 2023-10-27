@@ -1,37 +1,27 @@
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { NavigationMenu } from "@shopify/app-bridge-react";
-import Routes from "./Routes";
-
-import {
-  AppBridgeProvider,
-  QueryProvider,
-  PolarisProvider,
-} from "./components";
+import HomePage from "./pages";
+import { Login } from "./components";
+import { Signup } from "./components/signup";
 
 export default function App() {
-  // Any .tsx or .jsx files in /pages will become a route
-  // See documentation for <Routes /> for more info
-  const pages = import.meta.globEager("./pages/**/!(*.test.[jt]sx)*.([jt]sx)");
-  const { t } = useTranslation();
-
   return (
-    <PolarisProvider>
+    <div>
+      <div className="top-bar">
+        <div className="toggle-text">Sandbox</div>
+        <label className="switch">
+          <input type="checkbox" />
+          <span className="slider round"></span>
+        </label>
+        <div className="toggle-text">Live</div>
+      </div>
       <BrowserRouter>
-        <AppBridgeProvider>
-          <QueryProvider>
-            <NavigationMenu
-              navigationLinks={[
-                {
-                  label: t("NavigationMenu.pageName"),
-                  destination: "/pagename",
-                },
-              ]}
-            />
-            <Routes pages={pages} />
-          </QueryProvider>
-        </AppBridgeProvider>
+        <Routes>
+          <Route index element={<HomePage />} />
+          <Route path="login" element={<Login />} />
+          <Route path="signup" element={<Signup />} />
+        </Routes>
       </BrowserRouter>
-    </PolarisProvider>
+    </div>
   );
 }
