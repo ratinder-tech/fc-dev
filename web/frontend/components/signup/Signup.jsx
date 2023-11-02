@@ -13,13 +13,29 @@ export function Signup() {
                 </div>
                 <div className="heading2">
                     <span>Already have an account? </span>
-                    <Link to="/login" style={{textDecoration: "none"}}>
+                    <Link to="/login" style={{ textDecoration: "none" }}>
                         <span className="text-button"> Sign in here</span>
                     </Link>
                 </div>
                 <div className="input-container">
                     <div className="input-lebel">
-                        Email
+                        <span> First Name&nbsp;</span><span style={{ color: "red" }}> *</span>
+                    </div>
+                    <div className="input-field">
+                        <input className="input-field-text" type="text" />
+                    </div>
+                </div>
+                <div className="input-container">
+                    <div className="input-lebel">
+                        <span> Last Name&nbsp;</span><span style={{ color: "red" }}> *</span>
+                    </div>
+                    <div className="input-field">
+                        <input className="input-field-text" type="text" />
+                    </div>
+                </div>
+                <div className="input-container">
+                    <div className="input-lebel">
+                        <span> Email&nbsp;</span><span style={{ color: "red" }}> *</span>
                     </div>
                     <div className="input-field">
                         <input className="input-field-text" type="text" />
@@ -35,7 +51,7 @@ export function Signup() {
                 </div>
                 <div className="input-container">
                     <div className="input-lebel">
-                        Password
+                        <span> Password&nbsp;</span><span style={{ color: "red" }}> *</span>
                     </div>
                     <div className="input-field">
                         <input className="input-field-text" type="password" />
@@ -43,15 +59,17 @@ export function Signup() {
                 </div>
                 <div className="input-container">
                     <div className="input-lebel">
-                        Confirm Password
+                        <span>Confirm Password&nbsp;</span><span style={{ color: "red" }}> *</span>
                     </div>
                     <div className="input-field">
                         <input className="input-field-text" type="password" />
                     </div>
                 </div>
-                <button className="submit-btn" variant="primary">
-                    Submit
-                </button>
+                <div className="input-container">
+                    <button className="submit-btn" variant="primary">
+                        Submit
+                    </button>
+                </div>
             </div>
         </div>
     );
