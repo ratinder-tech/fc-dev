@@ -4,17 +4,19 @@ import { useState } from "react";
 import { MerchantBillingDetails } from "../merchantBillingDetails";
 import { PaymentMethods } from "../paymentMethods";
 import { PickupLocations } from "../pickupLocations";
+import { ProductMapping } from "../productMapping";
 
-export function Configuration() {
+export function Configuration(props) {
     const [activeNavItem, setActiveNavItem] = useState("basic");
-
     const getComponent = () => {
         if (activeNavItem == "paymentMethods") {
-            return <PaymentMethods />;
+            return <PaymentMethods setActiveNavItem={setActiveNavItem} {...props} />;
         } else if (activeNavItem == "pickupLocations") {
-            return <PickupLocations />
+            return <PickupLocations setActiveNavItem={setActiveNavItem} {...props} />
+        } else if (activeNavItem == "productMapping") {
+            return <ProductMapping />;
         }
-        return <MerchantBillingDetails />
+        return <MerchantBillingDetails setActiveNavItem={setActiveNavItem} {...props} />
     }
     return (
         <div className="configuration">

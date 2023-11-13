@@ -6,7 +6,11 @@
 .pickup-head {
     display: flex;
     width: 100%;
-    justify-content: space-between;
+    justify-content: flex-end;
+}
+
+.pickup-head button {
+    width: unset;
 }
 .payment-heading {
     width: 80%;
@@ -17,14 +21,18 @@
     justify-content: flex-start;
 }
 
-.pickup-locations .submit {
-    display: flex;
-    width: 20%;
-    justify-content: flex-end;
-    padding: 10px 20px;
-    align-items: center;
+.pickup-locations  .submit-btn {
+    font-size: 14px;
+    font-weight: 500;
+    font-family: "Poppins";
+    padding: 10px;
 }
 
-.pickup-locations  .submit-btn {
-    padding: 10px 20px;
+.pickup-locations-table {
+    width: 100%;
+    margin-top: 20px;
+}
+.pickup-locations-table table{
+    width: 100%;
+    color: #212529;
 }

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { fab } from '@fortawesome/free-brands-svg-icons';
@@ -8,11 +8,20 @@ import { Signup } from "./components/signup";
 import { ForgotPassword } from "./components/forgotPassword";
 import { MerchantBillingDetails } from "./components/merchantBillingDetails";
 import "./App.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userDetails, setUserDetails] = useState(null);
   library.add(fas, fab);
+
+  useEffect(() => {
+    console.log("isLoggedIn===" + localStorage.getItem("isLoggedIn"));
+    const isLogin = localStorage.getItem("isLoggedIn");
+    const accessToken = localStorage.getItem("accessToken");
+
+    setIsLoggedIn(isLogin);
+  });
 
   return (
     <div className="app">
@@ -24,6 +33,7 @@ export default function App() {
         </label>
       </div>
       <div className="app-mode">
+        {console.log("35==" + isLoggedIn)}
         {isLoggedIn &&
           <div className="mode-left"></div>
         }
@@ -35,14 +45,13 @@ export default function App() {
       </div>
       <BrowserRouter>
         <Routes>
-          <Route index element={<Login />} />
-          <Route path="login" element={<Login isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
-          <Route path="homepage" element={<HomePage isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
-          <Route path="signup" element={<Signup />} />
-          <Route path="forgotPassword" element={<ForgotPassword />} />
-          <Route path="merchantBillingDetails" element={<MerchantBillingDetails />} />
+          <Route path="/login" element={<Login setUserDetails={setUserDetails} />} />
+          <Route path="/homepage" element={<HomePage userDetails={userDetails} />} />
+          <Route path="/signup" element={<Signup setUserDetails={setUserDetails} />} />
+          <Route path="/forgotPassword" element={<ForgotPassword />} />
+          <Route path="/merchantBillingDetails" element={<MerchantBillingDetails />} />
         </Routes>
-      </BrowserRouter>
+      </BrowserRouter >
     </div>
   );
 }

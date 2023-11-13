@@ -7,6 +7,24 @@ import serveStatic from "serve-static";
 import shopify from "./shopify.js";
 import productCreator from "./product-creator.js";
 import GDPRWebhookHandlers from "./gdpr.js";
+import {MongoClient} from "mongodb";
+
+const url = "mongodb://localhost:27017";
+const database = "local";
+const client = new MongoClient(url);
+
+
+async function getConnection() {
+    let result = await client.connect();
+    let db = result.db(database);
+    let collection = db.collection("products");
+    let response = await collection.find({}).toArray()
+    console.log(response);
+
+}
+ 
+
+getConnection();
 
 const PORT = parseInt(
   process.env.BACKEND_PORT || process.env.PORT || "3000",

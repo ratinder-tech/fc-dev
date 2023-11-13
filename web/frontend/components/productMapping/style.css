@@ -1,0 +1,72 @@
+.product-mapping {
+    background-color: white;
+    padding: 0px 20px;
+}
+
+.product-header {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+}
+.product-map-filters {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.product-map-filters .input-container {
+    width: 25%;
+}
+
+.product-map-filters .filter-buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-end;
+    width: 20%;
+}
+
+.filter-buttons button {
+    height: 40px;
+    margin-right: 20px;
+    border: 1px solid #ff6900;
+    background: transparent;
+    border-radius: 4px;
+    color: #ff6900;
+    padding: 0 10px;
+}
+
+.product-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+}
+
+.product-actions button {
+    width: unset;
+}
+.payment-heading {
+    width: 80%;
+    font-size: 22px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.product-actions  .submit-btn {
+    font-size: 14px;
+    font-weight: 500;
+    font-family: "Poppins";
+    padding: 10px;
+}
+
+.pickup-locations-table {
+    width: 100%;
+    margin-top: 20px;
+}
+.pickup-locations-table table{
+    width: 100%;
+    color: #212529;
+}

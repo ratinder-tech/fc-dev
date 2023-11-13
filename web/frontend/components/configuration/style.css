@@ -29,14 +29,15 @@
     display: flex;
     background-color: #eaebeb;
     justify-content: space-evenly;
-    width: 100%;
     border: 2px solid #eaebeb;
     border-radius: 8px;
+    margin: 0 10px;
+
 }
 
 .top-nav-bar .nav-bar-item {
     width: 25%;
-    height: 40px;
+    height: 30px;
     color: #555;
     display: flex;
     align-items: center;
@@ -55,7 +56,7 @@
 
 .top-nav-bar .nav-bar-item-active {
     width: 25%;
-    height: 40px;
+    height: 30px;
     background-color: white;
     color: #ff6900;
     display: flex;

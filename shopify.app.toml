@@ -1,3 +1,28 @@
-# This file stores configurations for your Shopify app.
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-scopes = "write_products"
+name = "fc-app"
+client_id = "5141ee570075449f84e5e831ff873ed6"
+application_url = "https://author-passport-intervals-thousand.trycloudflare.com"
+embedded = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = ""
+
+[auth]
+redirect_urls = [
+  "https://author-passport-intervals-thousand.trycloudflare.com/auth/callback",
+  "https://author-passport-intervals-thousand.trycloudflare.com/auth/shopify/callback",
+  "https://author-passport-intervals-thousand.trycloudflare.com/api/auth/callback",
+  "https://author-passport-intervals-thousand.trycloudflare.com/.shopify/graphiql/auth/callback"
+]
+
+[webhooks]
+api_version = "2023-10"
+
+[pos]
+embedded = false
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "dev-fast-courier-aus.myshopify.com"

@@ -10,7 +10,7 @@
 }
 
 .logo-image {
-    margin: 20px;
+    height: 80px;
 }
 
 .logo-image img {
@@ -20,6 +20,7 @@
 .side-nav-bar {
     display: flex;
     flex-direction: column;
+    padding: 0 10px;
 }
 
 .nav-bar-item {
