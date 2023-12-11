@@ -24,10 +24,9 @@ export function Login(props) {
             "version": "3.1.1",
         }
         axios.post('https://fctest-api.fastcourier.com.au/api/wp/login', payload, { "headers": headers }).then(response => {
-            console.log(response.data.merchant);
             props.setUserDetails(response.data.merchant);
-            localStorage.setItem("isLoggedIn", true);
             localStorage.setItem("accessToken", response.data.merchant.access_token);
+            localStorage.setItem("merchantDomainId", response.data.merchant.id);
             navigate('/homepage');
             setIsLoading(false);
         }).catch(error => {
@@ -35,6 +34,13 @@ export function Login(props) {
             console.log(error);
         })
     }
+
+    useEffect(() => {
+        const accessToken = localStorage.getItem("accessToken");
+        if (accessToken) {
+            navigate("/homepage");
+        }
+    }, []);
 
     return (
         <div className="main-container">
@@ -78,11 +84,9 @@ export function Login(props) {
                     </div>
                 </div>
                 <div className="input-container">
-                    {/* <Link to="/homepage" style={{ width: "90%" }} onClick={() => props.setIsLoggedIn(true)}> */}
-                    <button type="submit" className="submit-btn" variant="primary" onClick={() => login()}>
+                    <button type="submit" className="submit-btn" onClick={() => login()}>
                         Continue
                     </button>
-                    {/* </Link> */}
                 </div>
             </div>
         </div>

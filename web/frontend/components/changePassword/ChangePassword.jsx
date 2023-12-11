@@ -4,6 +4,7 @@ import "./style.css";
 import { useState } from "react";
 import { Modal } from "../modal";
 import { Loader } from "../loader";
+import { SuccessModal } from "../successModal";
 
 export function ChangePassword(props) {
     const [password, setPassword] = useState("");
@@ -28,7 +29,6 @@ export function ChangePassword(props) {
             "Authorization": "Bearer " + accessToken
         }
         axios.post('https://fctest-api.fastcourier.com.au/api/wp/change_password', payload, { "headers": headers }).then(response => {
-            console.log(response.data);
             setIsLoading(false);
             setShowModal(true);
         }).catch(error => {
@@ -39,18 +39,11 @@ export function ChangePassword(props) {
     return (
         <div className="change-password">
             {isLoading && <Loader />}
-            <Modal showModal={showModal} width="">
-                <div className="success-modal">
-                    <div className="success-tex">
-                        Password changed successfully.
-                    </div>
-                    <div className="success-btn">
-                        <button className="submit-btn" variant="primary" onClick={() => props.setActiveNavItem("configuration")}>
-                            Ok
-                        </button>
-                    </div>
-                </div>
-            </Modal>
+            <SuccessModal
+                showModal={showModal}
+                message="Password changed successfully."
+                onConfirm={() => props.setActiveNavItem("configuration")}
+            />
             <div className="heading1">
                 Change Password
             </div>
@@ -80,14 +73,9 @@ export function ChangePassword(props) {
                     </div>
                 </div>
                 <div className="btn-section">
-                    <button className="submit-btn" variant="primary" onClick={() => changePassword()}>
+                    <button className="submit-btn" onClick={() => changePassword()}>
                         Submit
                     </button>
-                    <Link to="/login" style={{ width: "100%" }}>
-                        <button className="cancel-btn" variant="primary">
-                            Cancel
-                        </button>
-                    </Link>
                 </div>
             </div>
         </div>

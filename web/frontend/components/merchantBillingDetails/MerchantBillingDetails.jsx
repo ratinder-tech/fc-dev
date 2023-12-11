@@ -2,33 +2,38 @@ import { useEffect, useState } from "react";
 import axios from 'axios';
 import Select from 'react-select';
 import "./style.css";
+import { Loader } from "../loader";
 
 export function MerchantBillingDetails(props) {
-    const [billingFirstName, setBillingFirstName] = useState(props.userDetails?.billing_first_name ?? "");
-    const [billingLastName, setBillingLastName] = useState(props.userDetails?.billing_last_name ?? "");
-    const [billingCompanyName, setBillingCompanyName] = useState(props.userDetails?.billing_company_name ?? "");
-    const [billingPhone, setBillingPhone] = useState(props.userDetails?.billing_phone ?? "");
-    const [billingEmail, setBillingEmail] = useState(props.userDetails?.billing_email ?? "");
-    const [billingAbn, setBillingAbn] = useState(props.userDetails?.abn ?? "");
-    const [billingAddress1, setBillingAddress1] = useState(props.userDetails?.billing_address_1 ?? "");
-    const [billingAddress2, setBillingAddress2] = useState(props.userDetails?.billing_address_2 ?? "");
-    const [billingState, setBillingState] = useState(props.userDetails?.billing_state ?? "");
-    const [billingPostcode, setBillingPostcode] = useState(props.userDetails?.billing_postcode ?? "");
-    const [billingSuburb, setBillingSuburb] = useState(props.userDetails?.billing_suburb ?? "");
-    const [bookingPreference, setBookingPreference] = useState(props.userDetails?.booking_preference ?? "");
-    const [fallbackAmount, setFallbackAmount] = useState(props.userDetails?.fallback_amount ?? "");
-    const [insuranceType, setInsuranceType] = useState(props.userDetails?.insurance_type ?? "");
-    const [isInsurancePaidByCustomer, setIsInsurancePaidByCustomer] = useState(props.userDetails?.is_insurance_paid_by_customer ?? 0);
+    const [billingFirstName, setBillingFirstName] = useState("");
+    const [billingLastName, setBillingLastName] = useState("");
+    const [billingCompanyName, setBillingCompanyName] = useState("");
+    const [billingPhone, setBillingPhone] = useState("");
+    const [billingEmail, setBillingEmail] = useState("");
+    const [billingAbn, setBillingAbn] = useState("");
+    const [billingAddress1, setBillingAddress1] = useState("");
+    const [billingAddress2, setBillingAddress2] = useState("");
+    const [billingState, setBillingState] = useState("");
+    const [billingPostcode, setBillingPostcode] = useState("");
+    const [billingSuburb, setBillingSuburb] = useState("");
+    const [bookingPreference, setBookingPreference] = useState("");
+    const [fallbackAmount, setFallbackAmount] = useState("");
+    const [insuranceType, setInsuranceType] = useState("");
+    const [isInsurancePaidByCustomer, setIsInsurancePaidByCustomer] = useState(0);
     const [automaticOrderProcess, setAutomaticOrderProcess] = useState(0);
-    const [conditionalValue, setConditionalValue] = useState(props.userDetails?.conditional_price ?? "");
-    const [insuranceAmount, setInsuranceAmount] = useState(props.userDetails?.insurance_amount ?? "");
+    const [conditionalValue, setConditionalValue] = useState("");
+    const [insuranceAmount, setInsuranceAmount] = useState("");
     const [processAfterMinutes, setProcessAfterMinutes] = useState(60);
     const [processAfterDays, setProcessAfterDays] = useState(0);
+    const [isDropOffTailLift, setIsDropOffTailLift] = useState(false);
     const [suburbs, setSuburbs] = useState([]);
     const [couriers, setCouriers] = useState([]);
     const [activeCouriers, setActiveCouriers] = useState([]);
+    const [shoppingPreference, setShoppingPreference] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const getMerchantDetails = () => {
+        setIsLoading(true);
         const accessToken = localStorage.getItem("accessToken");
         const headers = {
             "Accept": "application/json",
@@ -38,14 +43,34 @@ export function MerchantBillingDetails(props) {
             "Authorization": "Bearer " + accessToken
         }
         axios.get('https://fctest-api.fastcourier.com.au/api/wp/get_merchant', { "headers": headers }).then(response => {
-            console.log("getmerchant==" + response.data.merchant);
-            // props.setUserDetails(response.data.merchant);
-            // localStorage.setItem("isLoggedIn", true);
-            // localStorage.setItem("accessToken", response.data.merchant.access_token);
-            // navigate('/homepage');
+            console.log("merchantDetials", response.data.data);
+            setMerchantDetails(response.data.data);
+            setIsLoading(false);
         }).catch(error => {
             console.log(error);
+            setIsLoading(false);
         })
+    }
+
+    function setMerchantDetails(merchant) {
+        setBillingFirstName(merchant.billing_first_name);
+        setBillingLastName(merchant.billing_last_name);
+        setBillingCompanyName(merchant.billing_company_name);
+        setBillingPhone(merchant.billing_phone);
+        setBillingEmail(merchant.billing_email);
+        setBillingAbn(merchant.abn);
+        setBillingAddress1(merchant.billing_address_1);
+        setBillingAddress2(merchant.billing_address_2);
+        setBillingState(merchant.billing_state);
+        setBillingPostcode(merchant.billing_postcode);
+        setBillingSuburb(merchant.billing_suburb);
+        setBookingPreference(merchant.booking_preference);
+        setFallbackAmount(merchant.fallback_amount);
+        setInsuranceType(merchant.insurance_type);
+        setIsInsurancePaidByCustomer(merchant.is_insurance_paid_by_customer);
+        setConditionalValue(merchant.conditional_price);
+        setInsuranceAmount(merchant.insurance_amount);
+        setIsDropOffTailLift(merchant.is_drop_off_tail_lift);
     }
 
     const getSuburbs = () => {
@@ -79,82 +104,84 @@ export function MerchantBillingDetails(props) {
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        console.log("hell world")
         axios.get('https://fctest-api.fastcourier.com.au/api/wp/couriers', { "headers": headers }).then(response => {
             setCouriers(response.data.data);
+            var courierIds = [];
+            courierIds = response.data.data.map((element) => element.id.toString());
+            setActiveCouriers(courierIds);
         }).catch(error => {
             console.log(error);
         })
     }
 
     const activateMerchant = () => {
-        // const accessToken = localStorage.getItem("accessToken");
-        // const payload = {
-        //     "billingFirstName": billingFirstName,
-        //     "billingLastName": billingLastName,
-        //     "billingCompanyName": billingCompanyName,
-        //     "billingPhone": billingPhone,
-        //     "billingEmail": billingEmail,
-        //     "abn": billingAbn,
-        //     "packageType": "box",
-        //     "billingAddress1": billingAddress1,
-        //     "billingAddress2": billingAddress2,
-        //     "billingSuburb": billingSuburb,
-        //     "billingState": billingState,
-        //     "billingPostcode": billingPostcode,
-        //     "conditionalPrice": conditionalValue,
-        //     "courierPreferences": activeCouriers,
-        //     "bookingPreference": bookingPreference,
-        //     "isInsurancePaidByCustomer": isInsurancePaidByCustomer ? 1 : 0,
-        //     "fallbackAmount": fallbackAmount,
-        //     "insuranceType": insuranceType,
-        //     "insuranceAmount": insuranceAmount,
-        //     "processAfterMinutes": processAfterMinutes,
-        //     "processAfterDays": processAfterDays,
-        //     "automaticOrderProcess": automaticOrderProcess,
-        //     "action": "post_activate_mechant",
-        //     "paymentMethod": "pm_1O9jNICodfiDzZhka9lcNse4",
-        // }
-        // const headers = {
-        //     "Accept": "application/json",
-        //     "Content-Type": "application/json",
-        //     "request-type": "shopify_development",
-        //     "version": "3.1.1",
-        //     "Authorization": "Bearer " + accessToken
-        // }
-        // axios.post('https://fctest-api.fastcourier.com.au/api/wp/activate', payload, { "headers": headers }).then(response => {
-        //     console.log(response.data.merchant);
-        //     props.setActiveNavItem("paymentMethods");
-        // }).catch(error => {
-        //     console.log(error);
-        // })
-        props.setActiveNavItem("paymentMethods");
+        setIsLoading(true);
+        const accessToken = localStorage.getItem("accessToken");
+        const merchantDomainId = localStorage.getItem("merchantDomainId");
+        const payload = {
+            "id": merchantDomainId,
+            "billingFirstName": billingFirstName,
+            "billingLastName": billingLastName,
+            "billingCompanyName": billingCompanyName,
+            "billingPhone": billingPhone,
+            "billingEmail": billingEmail,
+            "abn": billingAbn,
+            "packageType": "box",
+            "billingAddress1": billingAddress1,
+            "billingAddress2": billingAddress2,
+            "billingSuburb": billingSuburb,
+            "billingState": billingState,
+            "billingPostcode": billingPostcode,
+            "conditionalPrice": conditionalValue,
+            "courierPreferences": activeCouriers,
+            "bookingPreference": bookingPreference,
+            "isInsurancePaidByCustomer": isInsurancePaidByCustomer ? 1 : 0,
+            "fallbackAmount": fallbackAmount,
+            "insuranceType": insuranceType,
+            "insuranceAmount": insuranceAmount,
+            "isDropOffTailLift": isDropOffTailLift,
+            "isAuthorityToLeave": "0",
+            "processAfterMinutes": processAfterMinutes,
+            "processAfterDays": processAfterDays,
+            "automaticOrderProcess": automaticOrderProcess,
+            "shoppingPreference": "show_shipping_price_with_carrier_name",
+            "action": "post_activate_mechant",
+            "paymentMethod": "pm_1O9jNICodfiDzZhka9lcNse4",
+        }
+        const headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "request-type": "shopify_development",
+            "version": "3.1.1",
+            "Authorization": "Bearer " + accessToken
+        }
+        axios.post('https://fctest-api.fastcourier.com.au/api/wp/activate', payload, { "headers": headers }).then(response => {
+            props.setActiveNavItem("paymentMethods");
+            setIsLoading(false);
+        }).catch(error => {
+            console.log(error);
+            setIsLoading(false);
+        })
     }
 
     const handleCourierChange = (e) => {
-        const isChecked = e.target.checked;
-        var courierIds = couriers.map((element) => element.id);
-        if (isChecked) {
-            if (!courierIds.includes(e.target.value)) {
-                courierIds.push(e.target.value);
-            }
-        } else {
-            courierIds.filter(item => item !== e.target.value);
-        }
+        const courierIds = activeCouriers.includes(e.target.value)
+            ? activeCouriers.filter(item => item !== e.target.value)
+            : [...activeCouriers, e.target.value];
 
         setActiveCouriers(courierIds);
-        console.log("courierIds ==" + courierIds);
     }
 
 
     useEffect(() => {
-        // getMerchantDetails();
+        getMerchantDetails();
         getCouriers();
         getSuburbs();
     }, []);
 
     return (
         <div className="merchant-main">
+            {isLoading && <Loader />}
             <div className="merchant-heading1">
                 Merchant Billing Details
             </div>
@@ -235,17 +262,12 @@ export function MerchantBillingDetails(props) {
                     <div className="input-lebel1">
                         <span> Suburb&nbsp;</span><span style={{ color: "red" }}> *</span>
                     </div>
-                    {/* <div className="input-field"> */}
-                    {/* <input className="input-field-text1" type="text" value={billingAddress2} placeholder="Suburb" /> */}
                     <Select options={suburbs} onChange={(e) => {
                         const [, extractedCity, extractedPostcode, extractedState] = e.value.match(/^(.*), (\d+) \((.*)\)$/);
-                        console.log("suburb==" + e.value);
-                        // Set the values to the state variables
                         setBillingSuburb(extractedCity);
                         setBillingPostcode(extractedPostcode);
                         setBillingState(extractedState);
                     }} />
-                    {/* </div> */}
                 </div>
             </div>
             <div className="shipping-config">
@@ -295,60 +317,12 @@ export function MerchantBillingDetails(props) {
                     <span> Active Couriers&nbsp;</span><span style={{ color: "red" }}> *</span>
                 </div>
                 <div className="courier-preference-items">
-                    {couriers.map((courier, i) => {
-                        return <div className="input-checkbox">
-                            <input type="checkbox" name="courierPlease" id="courierPlease" value={courier.id} onChange={(e) => handleCourierChange(e)} />
+                    {activeCouriers.length > 0 && couriers.map((courier, i) => {
+                        return <div className="input-checkbox" key={i}>
+                            <input type="checkbox" name="courierPlease" id="courierPlease" value={courier.id} onChange={(e) => handleCourierChange(e)} checked={activeCouriers.includes(courier.id.toString())} />
                             <label htmlFor="courierPlease">&nbsp;{courier.name}</label>
                         </div>
                     })}
-                    {/* <div className="input-checkbox">
-                        <input type="checkbox" name="starTrack" id="starTrack" />
-                        <label htmlFor="starTrack">&nbsp;Star Track</label>
-                    </div>
-                    <div className="input-checkbox">
-                        <input type="checkbox" name="tnt" id="tnt" />
-                        <label htmlFor="tnt">&nbsp;TNT</label>
-                    </div>
-                    <div className="input-checkbox">
-                        <input type="checkbox" name="alliedExpress" id="alliedExpress" />
-                        <label htmlFor="alliedExpress">&nbsp;AlliedExpress</label>
-                    </div>
-                    <div className="input-checkbox">
-                        <input type="checkbox" name="Aramex" id="Aramex" />
-                        <label htmlFor="Aramex">&nbsp;Aramex</label>
-                    </div>
-                    <div className="input-checkbox">
-                        <input type="checkbox" name="hunterExpress" id="hunterExpress" />
-                        <label htmlFor="hunterExpress">&nbsp;Hunter Express</label>
-                    </div>
-                    <div className="input-checkbox">
-                        <input type="checkbox" name="directCouriers" id="directCouriers" />
-                        <label htmlFor="directCouriers">&nbsp;Direct Couriers</label>
-                    </div>
-                    <div className="input-checkbox">
-                        <input type="checkbox" name="alphaFreight" id="alphaFreight" />
-                        <label htmlFor="alphaFreight">&nbsp;Alpha Freight</label>
-                    </div>
-                    <div className="input-checkbox">
-                        <input type="checkbox" name="Northline" id="Northline" />
-                        <label htmlFor="Northline">&nbsp;Northline</label>
-                    </div>
-                    <div className="input-checkbox">
-                        <input type="checkbox" name="ctiLogistics" id="ctiLogistics" />
-                        <label htmlFor="ctiLogistics">&nbsp;CTI Logistics Regional Freight</label>
-                    </div>
-                    <div className="input-checkbox">
-                        <input type="checkbox" name="felixTranspot" id="felixTranspot" />
-                        <label htmlFor="felixTranspot">&nbsp;Felix Transport</label>
-                    </div>
-                    <div className="input-checkbox">
-                        <input type="checkbox" name="capitalTransport" id="capitalTransport" />
-                        <label htmlFor="capitalTransport">&nbsp;Capital Transport</label>
-                    </div>
-                    <div className="input-checkbox">
-                        <input type="checkbox" name="NorthlineExpress" id="NorthlineExpress" />
-                        <label htmlFor="NorthlineExpress">&nbsp;Northline Express</label>
-                    </div> */}
                 </div>
             </div>
             <div className="insurance-preferences">
@@ -403,8 +377,12 @@ export function MerchantBillingDetails(props) {
                     <label htmlFor="manual">&nbsp;Manual</label>
                 </div>
             </div>
+            <div className="input-checkbox">
+                <input type="checkbox" name="isDropOffTailLift" id="isDropOffTailLift" onChange={(e) => setIsDropOffTailLift(e.target.checked)} />
+                <label htmlFor="isDropOffTailLift">&nbsp;Default tail lift on delivery</label>
+            </div>
             <div className="submit">
-                <button className="submit-btn" variant="primary" onClick={() => activateMerchant()}>
+                <button className="submit-btn" onClick={() => activateMerchant()}>
                     Save details
                 </button>
             </div>

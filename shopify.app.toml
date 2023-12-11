@@ -2,19 +2,19 @@
 
 name = "fc-app"
 client_id = "5141ee570075449f84e5e831ff873ed6"
-application_url = "https://author-passport-intervals-thousand.trycloudflare.com"
+application_url = "https://indoor-yeast-automatic-informational.trycloudflare.com"
 embedded = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = ""
+scopes = "read_products,write_products,read_orders,write_orders,read_shipping,write_shipping"
 
 [auth]
 redirect_urls = [
-  "https://author-passport-intervals-thousand.trycloudflare.com/auth/callback",
-  "https://author-passport-intervals-thousand.trycloudflare.com/auth/shopify/callback",
-  "https://author-passport-intervals-thousand.trycloudflare.com/api/auth/callback",
-  "https://author-passport-intervals-thousand.trycloudflare.com/.shopify/graphiql/auth/callback"
+  "https://indoor-yeast-automatic-informational.trycloudflare.com/auth/callback",
+  "https://indoor-yeast-automatic-informational.trycloudflare.com/auth/shopify/callback",
+  "https://indoor-yeast-automatic-informational.trycloudflare.com/api/auth/callback",
+  "https://indoor-yeast-automatic-informational.trycloudflare.com/.shopify/graphiql/auth/callback"
 ]
 
 [webhooks]
@@ -25,4 +25,4 @@ embedded = false
 
 [build]
 automatically_update_urls_on_dev = true
-dev_store_url = "dev-fast-courier-aus.myshopify.com"
+dev_store_url = "test-development-fc-app.myshopify.com"

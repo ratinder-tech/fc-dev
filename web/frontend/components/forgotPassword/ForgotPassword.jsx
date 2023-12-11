@@ -1,15 +1,18 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios';
 import "../login/style.css";
 import "./style.css";
 import { useState } from "react";
 import { Modal } from "../modal";
 import { Loader } from "../loader";
+import { SuccessModal } from "../successModal";
 
 export function ForgotPassword() {
     const [email, setEmail] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+
+    const navigate = useNavigate();
 
     const forgotPassword = () => {
         setIsLoading(true);
@@ -23,7 +26,6 @@ export function ForgotPassword() {
             "version": "3.1.1",
         }
         axios.post('https://fctest-api.fastcourier.com.au/api/wp/forgot_password', payload, { "headers": headers }).then(response => {
-            console.log(response.data);
             setIsLoading(false);
             setShowModal(true);
         }).catch(error => {
@@ -34,20 +36,11 @@ export function ForgotPassword() {
     return (
         <div className="main-container">
             {isLoading && <Loader />}
-            <Modal showModal={showModal} width="">
-                <div className="success-modal">
-                    <div className="success-tex">
-                        We have sent you a password reset email.
-                    </div>
-                    <Link to={"/login"}>
-                        <div className="success-btn">
-                            <button className="submit-btn" variant="primary">
-                                Ok
-                            </button>
-                        </div>
-                    </Link>
-                </div>
-            </Modal>
+            <SuccessModal
+                showModal={showModal}
+                message="We have sent you a password reset email."
+                onConfirm={() => navigate("/login")}
+            />
             <div className="logo-image">
                 <img src="https://portal-staging.fastcourier.com.au/assets/media/logos/fast-courier-dark.png" />
             </div>
@@ -68,11 +61,11 @@ export function ForgotPassword() {
                     </div>
                 </div>
                 <div className="btn-section">
-                    <button className="submit-btn" variant="primary" onClick={() => forgotPassword()}>
+                    <button className="submit-btn" onClick={() => forgotPassword()}>
                         Submit
                     </button>
                     <Link to="/login" style={{ width: "100%" }}>
-                        <button className="cancel-btn" variant="primary">
+                        <button className="cancel-btn" >
                             Cancel
                         </button>
                     </Link>

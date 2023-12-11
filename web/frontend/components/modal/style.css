@@ -11,9 +11,7 @@
 }
 
 .modal-inner {
-    padding: 10px;
     background: white;
-    width: 60%;
     border-radius: 10px;
     box-shadow: 0 0.1rem 1rem 0.25rem rgba(0, 0, 0, 0.05);
 }

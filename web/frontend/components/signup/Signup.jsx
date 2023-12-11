@@ -34,10 +34,9 @@ export function Signup(props) {
         }
 
         axios.post('https://fctest-api.fastcourier.com.au/api/wp/signup', payload, { "headers": headers }).then(response => {
-            console.log(response);
             props.setUserDetails(response.data.merchant);
-            localStorage.setItem("isLoggedIn", true);
             localStorage.setItem("accessToken", response.data.merchant.access_token);
+            localStorage.setItem("merchantDomainId", response.data.merchant.id);
             navigate('/homepage');
             setIsLoading(false);
         }).catch(error => {
@@ -114,7 +113,7 @@ export function Signup(props) {
                     </div>
                 </div>
                 <div className="input-container">
-                    <button className="submit-btn" variant="primary" onClick={() => signup()}>
+                    <button className="submit-btn" onClick={() => signup()}>
                         Submit
                     </button>
                 </div>
