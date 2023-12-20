@@ -114,6 +114,9 @@ a {
     margin-right: 10px;
     text-decoration: none;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .cancel-btn {
@@ -127,4 +130,7 @@ a {
     margin-left: 10px;
     text-decoration: none;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

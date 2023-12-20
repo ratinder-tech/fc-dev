@@ -109,38 +109,25 @@ app.use("/api/*", shopify.validateAuthenticatedSession());
 
 app.use(express.json());
 
+app.post("/api/hold-orders", async (_req, res) => {
+  const { orderIds } = _req.body;
+  const session = res.locals.shopify.session;
+  var orders = [];
+  orderIds.forEach(async (id) => {
+    const metafield = new shopify.api.rest.Metafield({ session: res.locals.shopify.session });
+    metafield.order_id = id;
+    metafield.namespace = "my_fields";
+    metafield.key = "purchase_order";
+    metafield.type = "single_line_text_field";
+    metafield.value = "123";
+    await metafield.save({
+      update: true,
+    });
 
-
-
-
-// app.post("/api/carrier-service/create", async (_req, res) => {
-//   const carrier_service = new shopify.api.rest.CarrierService({ session: res.locals.shopify.session });
-//   carrier_service.name = "Fast Courier";
-//   carrier_service.callback_url = "https://dev-fast-courier-aus.myshopify.com";
-//   carrier_service.service_discovery = true;
-//   const response = await carrier_service.save({
-//     update: true,
-//   });
-//   res.status(200).send(response);
-// });
-
-// app.post("/api/carrier-service/update", async (_req, res) => {
-//   const carrier_service = new shopify.api.rest.CarrierService({ session: res.locals.shopify.session });
-//   carrier_service.id = 65775763697;
-//   carrier_service.callback_url = "https://generators-scene-afghanistan-ice.trycloudflare.com/api/shipping-rates";
-//   const response = await carrier_service.save({
-//     update: true,
-//   });
-//   res.status(200).send(response);
-// });
-
-// app.get("/api/carrier-services", async (_req, res) => {
-//   const carriers = await shopify.api.rest.CarrierService.all({
-//     session: res.locals.shopify.session,
-//     status: "any",
-//   });
-//   res.status(200).send(carriers);
-// });
+    orders.push(metafield);
+  });
+  res.status(200).send(orders);
+});
 
 app.get("/api/orders", async (_req, res) => {
   const orders = await shopify.api.rest.Order.all({
@@ -148,6 +135,20 @@ app.get("/api/orders", async (_req, res) => {
     status: "any",
   });
   res.status(200).send(orders);
+});
+
+app.post("/api/set-shipping", async (_req, res) => {
+  const checkout = new shopify.api.rest.Checkout({ session: res.locals.shopify.session });
+  checkout.token = _req.body.checkoutToken;
+  checkout.shipping_line = {
+    "handle": "shopify-Free%20Shipping-0.00",
+    "price": "10.00",
+    "title": "Free Shipping"
+  };
+  await checkout.save({
+    update: true,
+  });
+  res.status(200).send(checkout);
 });
 
 app.post("/api/shipping-box/create", async (_req, res) => {

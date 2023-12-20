@@ -26,3 +26,27 @@
 .new-orders a {
     text-decoration: underline;
 }
+
+.booking-modal {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.booking-modal .modal-body {
+    overflow: unset;
+    height: unset !important;
+}
+
+.booking-modal .modal-footer {
+    display: flex;
+    justify-content: space-between;
+}
+
+.booking-modal .cancel-btn {
+    width: 40%;
+}
+
+.booking-modal .submit-btn {
+    width: 40%;
+}
