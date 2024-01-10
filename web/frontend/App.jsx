@@ -14,6 +14,7 @@ import {
   QueryProvider,
   PolarisProvider,
 } from "./components";
+import { OrderDetails } from "./components/orderDetails/OrderDetails";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -63,6 +64,7 @@ export default function App() {
                 <Route index element={<Navigate to="/login" />} />
                 <Route path="/login" element={<Login setUserDetails={setUserDetails} />} />
                 <Route path="/homepage" element={<HomePage userDetails={userDetails} />} />
+                <Route path="/orderDetails" element={<OrderDetails />} />
                 <Route path="/signup" element={<Signup setUserDetails={setUserDetails} />} />
                 <Route path="/forgotPassword" element={<ForgotPassword />} />
                 <Route path="/merchantBillingDetails" element={<MerchantBillingDetails />} />

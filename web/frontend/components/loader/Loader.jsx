@@ -3,7 +3,7 @@ import "./style.css";
 
 export function Loader() {
     return (
-        <div className="modal-main">
+        <div className="loader">
             <Oval
                 height={60}
                 width={60}

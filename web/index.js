@@ -116,10 +116,10 @@ app.post("/api/hold-orders", async (_req, res) => {
   orderIds.forEach(async (id) => {
     const metafield = new shopify.api.rest.Metafield({ session: res.locals.shopify.session });
     metafield.order_id = id;
-    metafield.namespace = "my_fields";
-    metafield.key = "purchase_order";
+    metafield.namespace = "Order";
+    metafield.key = "fc_order_status";
     metafield.type = "single_line_text_field";
-    metafield.value = "123";
+    metafield.value = "Hold";
     await metafield.save({
       update: true,
     });
@@ -137,7 +137,7 @@ app.get("/api/orders", async (_req, res) => {
   res.status(200).send(orders);
 });
 
-app.post("/api/set-shipping", async (_req, res) => {
+app.get("/api/set-shipping", async (_req, res) => {
   const checkout = new shopify.api.rest.Checkout({ session: res.locals.shopify.session });
   checkout.token = _req.body.checkoutToken;
   checkout.shipping_line = {
@@ -151,6 +151,31 @@ app.post("/api/set-shipping", async (_req, res) => {
   res.status(200).send(checkout);
 });
 
+app.get("/api/get-checkout/:checkoutToken", async (_req, res) => {
+  const checkoutToken = _req.params.checkoutToken;
+  const checkout = await shopify.api.rest.Checkout.find({
+    session: res.locals.shopify.session,
+    token: checkoutToken,
+  });
+  res.status(200).send(checkout);
+});
+
+app.post("/api/save-merchant", async (_req, res) => {
+  const db = await getConnection();
+  const body = _req.body;
+  let collection = db.collection("merchant_details");
+  const response = await collection.insertOne(body);
+  res.status(200).send(response);
+});
+
+app.get("/api/get-merchant", async (_req, res) => {
+  const db = await getConnection();
+  let collection = db.collection("merchant_details");
+  const response = await collection.find({}).toArray();
+  res.status(200).send(response);
+});
+
+
 app.post("/api/shipping-box/create", async (_req, res) => {
   const db = await getConnection();
   const body = _req.body;
@@ -158,6 +183,7 @@ app.post("/api/shipping-box/create", async (_req, res) => {
   const response = await collection.insertOne(body);
   res.status(200).send(response);
 });
+
 
 app.delete("/api/shipping-box/delete", async (_req, res) => {
   const db = await getConnection();
@@ -187,6 +213,40 @@ app.get("/api/products", async (_req, res) => {
     session: res.locals.shopify.session,
   });
   res.status(200).send(products);
+});
+
+app.get("/api/get-token", async (_req, res) => {
+  const products = await shopify.api.rest.Product.all({
+    session: res.locals.shopify.session,
+  });
+  res.status(200).send(products);
+});
+
+app.get("/api/order-metafields", async (_req, res) => {
+  const session = res.locals.shopify.session;
+  const client = new shopify.api.clients.Graphql({ session })
+  const queryString = `{
+    orders(first: 10) {
+      edges {
+        node {
+          id
+          metafields(first: 10) {
+            edges {
+              node {
+                key
+                value
+              }
+            }
+          }
+        }
+      }
+    }
+  }`
+
+  const data = await client.query({
+    data: queryString
+  });
+  res.status(200).send(data);
 });
 
 app.get("/api/products-metafields", async (_req, res) => {

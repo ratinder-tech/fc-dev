@@ -46,7 +46,8 @@ export function ProductMapping() {
     const [showImportDimensionsModal, setShowImportDimensionsModal] = useState(false);
     const [csvData, setCsvData] = useState(null);
     const [dataArray, setDataArray] = useState([]);
-    // const [shippingBoxes, setShippingBoxes] = useState()
+    const [products, setProducts] = useState(null);
+    const [shippingBoxes, setShippingBoxes] = useState(null);
 
     const fetch = useAuthenticatedFetch();
 
@@ -59,32 +60,61 @@ export function ProductMapping() {
         },
     });
 
-
-    const products = useAppQuery({
-        url: "/api/products",
-        reactQueryOptions: {
-            onSuccess: () => {
-                setIsLoading(false);
+    const getAllProducts = async () => {
+        const response = await fetch(
+            `/api/products`,
+            {
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             },
-        },
-    });
+        );
 
+        const data = await response.json();
 
-    const shippingBoxes = useAppQuery({
-        url: "/api/shipping-boxes",
-        reactQueryOptions: {
-            onSuccess: () => {
-                setIsLoading(false);
+        setProducts(data.data);
+    }
+
+    const getShippingBoxes = async () => {
+        const response = await fetch(
+            `/api/shipping-boxes`,
+            {
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             },
-        },
-    });
+        );
+
+        const data = await response.json();
+
+        console.log("shippingBoxes", data);
+
+        setShippingBoxes(data);
+    }
+
+    useEffect(() => {
+        getShippingBoxes();
+        getAllProducts();
+    }, []);
+
+
+    // const shippingBoxes = useAppQuery({
+    //     url: "/api/shipping-boxes",
+    //     reactQueryOptions: {
+    //         onSuccess: () => {
+    //             setIsLoading(false);
+    //         },
+    //     },
+    // });
 
 
     const uniqueTags = new Set();
     const uniqueCategories = new Set();
 
     // Iterate over the products and add tags to the Set
-    products?.data?.data.forEach(product => {
+    products?.forEach(product => {
         if (product.tags) {
             product.tags.split(',').forEach(tag => {
                 uniqueTags.add(tag.trim());
@@ -102,20 +132,20 @@ export function ProductMapping() {
     const uniqueCategoriesArray = Array.from(uniqueCategories);
 
 
-    const getProducts = products?.data?.data.map(item1 => {
+    const getProducts = products?.map(item1 => {
         const matchingItem2 = data?.body?.data?.products?.edges.find(item2 => item2.node.id.includes(item1.id));
         return { ...item1, ...matchingItem2 };
     });
 
 
     useEffect(() => {
-        var productItems = products?.data?.data;
+        var productItems = products;
         var data = productItems?.filter(element => selectedTag == "all" ? true : element.tags.includes(selectedTag));
         setProductData(data);
     }, [selectedTag]);
 
     useEffect(() => {
-        var productItems = products?.data?.data;
+        var productItems = products;
         var data = productItems?.filter(element => selectedCategory == "all" ? true : element.product_type.includes(selectedCategory));
         setProductData(data);
     }, [selectedCategory]);
@@ -149,23 +179,23 @@ export function ProductMapping() {
                 console.log("importData", importData);
                 const element = importData[0];
                 // importData.map(async (element) => {
-                    const response = await fetch('/api/product/add-dimensions', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            package_type: element["Package Type"],
-                            height: element.Height,
-                            width: element.Width,
-                            length: element.Length,
-                            weight: element.Weight,
-                            isIndividual: element.Individual,
-                            product_ids: productIds,
-                        }),
-                    });
+                const response = await fetch('/api/product/add-dimensions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        package_type: element["Package Type"],
+                        height: element.Height,
+                        width: element.Width,
+                        length: element.Length,
+                        weight: element.Weight,
+                        isIndividual: element.Individual,
+                        product_ids: productIds,
+                    }),
+                });
 
-                    console.log("response=", response);
+                console.log("response=", response);
                 // })
                 setIsLoading(false);
                 setShowImportDimensionsModal(false);
@@ -260,6 +290,7 @@ export function ProductMapping() {
                 }),
             });
             console.log("response", response);
+            getProducts();
             setIsLoading(false);
             setShowAssignLocationModal(false);
         } catch (err) {
@@ -287,6 +318,7 @@ export function ProductMapping() {
                 }),
             });
             setIsLoading(false);
+            getProducts();
             setshowDimensionsModal(false);
         } catch (err) {
             setIsLoading(false);
@@ -324,8 +356,8 @@ export function ProductMapping() {
                 }),
             });
             setIsLoading(false);
+            getShippingBoxes();
             setShowAddShippingBoxModal(false);
-            setShowShippingBoxesModal(false);
         } catch (err) {
             setIsLoading(false);
             console.log(err);
@@ -344,8 +376,8 @@ export function ProductMapping() {
                 body: JSON.stringify(shippingBox),
             });
             setIsLoading(false);
+            getShippingBoxes();
             setShowConfirmModal(false);
-            setShowShippingBoxesModal(false);
         } catch (err) {
             setIsLoading(false);
             console.log(err);
@@ -553,7 +585,7 @@ export function ProductMapping() {
                                 <th>Default</th>
                                 <th>Actions</th>
                             </tr>
-                            {shippingBoxes?.data?.length > 0 && shippingBoxes.data.map((element, i) => {
+                            {shippingBoxes?.length > 0 && shippingBoxes.map((element, i) => {
                                 return <tr className="products-row" style={{ background: i % 2 != 0 ? "#F5F8FA" : "#FFFFFF" }}>
                                     <td>{element.package_name}</td>
                                     <td>{element.package_type}</td>
@@ -703,9 +735,9 @@ export function ProductMapping() {
                         ))}
 
                     </div>
-                    <div className="add-more-dimension" onClick={() => setDimensionCount(dimensionCount + 1)}>
+                    {/* <div className="add-more-dimension" onClick={() => setDimensionCount(dimensionCount + 1)}>
                         Add More Dimensions
-                    </div>
+                    </div> */}
                     <div className="modal-footer">
                         <button className="cancel-btn" onClick={() => setshowDimensionsModal(false)}>
                             Close

@@ -2,19 +2,19 @@
 
 name = "Fast Courier"
 client_id = "5141ee570075449f84e5e831ff873ed6"
-application_url = "https://candy-jay-references-evaluations.trycloudflare.com"
+application_url = "https://movie-names-referral-undefined.trycloudflare.com"
 embedded = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_products,write_products,read_orders,write_orders,read_shipping,write_shipping,read_checkouts,write_checkouts"
+scopes = "read_products,write_products,read_orders,write_orders,read_all_orders,read_shipping,write_shipping,read_checkouts,write_checkouts,unauthenticated_read_checkouts,unauthenticated_write_checkouts"
 
 [auth]
 redirect_urls = [
-  "https://candy-jay-references-evaluations.trycloudflare.com/auth/callback",
-  "https://candy-jay-references-evaluations.trycloudflare.com/auth/shopify/callback",
-  "https://candy-jay-references-evaluations.trycloudflare.com/api/auth/callback",
-  "https://candy-jay-references-evaluations.trycloudflare.com/.shopify/graphiql/auth/callback"
+  "https://movie-names-referral-undefined.trycloudflare.com/auth/callback",
+  "https://movie-names-referral-undefined.trycloudflare.com/auth/shopify/callback",
+  "https://movie-names-referral-undefined.trycloudflare.com/api/auth/callback",
+  "https://movie-names-referral-undefined.trycloudflare.com/.shopify/graphiql/auth/callback"
 ]
 
 [webhooks]

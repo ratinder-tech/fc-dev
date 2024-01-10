@@ -3,6 +3,7 @@ import axios from 'axios';
 import Select from 'react-select';
 import "./style.css";
 import { Loader } from "../loader";
+import { useAppQuery, useAuthenticatedFetch } from "../../hooks";
 
 export function MerchantBillingDetails(props) {
     const [billingFirstName, setBillingFirstName] = useState("");
@@ -32,7 +33,9 @@ export function MerchantBillingDetails(props) {
     const [shoppingPreference, setShoppingPreference] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    const getMerchantDetails = () => {
+    const fetch = useAuthenticatedFetch();
+
+    const getMerchantDetails = async () => {
         setIsLoading(true);
         const accessToken = localStorage.getItem("accessToken");
         const headers = {
@@ -42,14 +45,37 @@ export function MerchantBillingDetails(props) {
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        axios.get('https://fctest-api.fastcourier.com.au/api/wp/get_merchant', { "headers": headers }).then(response => {
+        await axios.get('https://fctest-api.fastcourier.com.au/api/wp/get_merchant', { "headers": headers }).then(response => {
             console.log("merchantDetials", response.data.data);
+            // saveMerchant(response.data.data);
+            getMerchant();
             setMerchantDetails(response.data.data);
             setIsLoading(false);
         }).catch(error => {
             console.log(error);
             setIsLoading(false);
         })
+    }
+
+    const saveMerchant = async (merchantDetails) => {
+        const response = await fetch('/api/save-merchant', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(merchantDetails),
+        });
+        console.log(response);
+    }
+
+    const getMerchant = async () => {
+        const response = await fetch('/api/get-merchant', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        console.log(response);
     }
 
     function setMerchantDetails(merchant) {
@@ -355,7 +381,7 @@ export function MerchantBillingDetails(props) {
                     <label htmlFor="isInsurancePaidByCustomer">&nbsp;Insurance cost passed onto customer</label>
                 </div>
             </div>
-            <div className="settings">
+            {/* <div className="settings">
                 <div className="merchant-heading1">
                     Settings
                 </div>
@@ -380,7 +406,7 @@ export function MerchantBillingDetails(props) {
             <div className="input-checkbox">
                 <input type="checkbox" name="isDropOffTailLift" id="isDropOffTailLift" onChange={(e) => setIsDropOffTailLift(e.target.checked)} />
                 <label htmlFor="isDropOffTailLift">&nbsp;Default tail lift on delivery</label>
-            </div>
+            </div> */}
             <div className="submit">
                 <button className="submit-btn" onClick={() => activateMerchant()}>
                     Save details

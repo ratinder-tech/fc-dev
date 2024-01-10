@@ -3,7 +3,7 @@ import "./style.css";
 
 export function ErrorModal(props) {
     return (
-        <Modal {...props} width="30%">
+        <Modal {...props} width="30%" zIndex= "999999">
             <div className="error-modal">
                 <div className="error-header">
                     Error!

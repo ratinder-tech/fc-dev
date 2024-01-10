@@ -9,6 +9,7 @@ import { ProcessedOrders } from "../components/processedOrders";
 import { HoldOrders } from "../components/holdOrders";
 import { RejectedOrders } from "../components/rejectedOrders/RejectedOrders";
 import { FallbackOrders } from "../components/fallbackOrders";
+import { OrderDetails } from "../components/orderDetails/OrderDetails";
 
 export default function HomePage(props) {
   const [activeNavItem, setActiveNavItem] = useState("configuration");

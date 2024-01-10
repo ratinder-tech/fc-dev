@@ -3,10 +3,12 @@ import {
   useTranslate,
   reactExtension,
   TextField,
+  Checkbox,
   useShippingAddress,
-  useCheckoutToken
+  useCheckoutToken,
+  BlockSpacer
 } from '@shopify/ui-extensions-react/checkout';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 
 export default reactExtension(
@@ -19,14 +21,42 @@ function Extension() {
   const { extension } = useApi();
   const shippingAddress = useShippingAddress();
   const checkoutToken = useCheckoutToken();
-  // const fetch = useAuthenticatedFetch();
+
+  const [companyName, setCompanyName] = useState("");
+  const [authorityToLeave, setAuthorityToLeave] = useState(false);
 
 
-  useEffect(() => {
-    console.log(shippingAddress);
-  }, [shippingAddress])
+  const getQuotes = async () => {
+    const token = await sessionToken.get();
+
+    const result = await fetch(
+      `https://polo-duke-mailto-hard.trycloudflare.com/api/get-checkout/${checkoutToken}`,
+      {
+        method: "GET",
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Content-Type": 'application/json',
+          "Authorization": `Bearer ${token}`,
+        },
+        // body: JSON.stringify({
+        //   "checkoutToken": checkoutToken
+        // }),
+      },
+    );
+  }
+
+
+  // useEffect(() => {
+  //   console.log("company", companyName)
+  // }, [companyName])
 
   return (
-    <TextField label="Company Name (optional)" />
+    <>
+      <TextField label="Company Name (optional)" value={companyName} onInput={(value) => setCompanyName(value)} />
+      <BlockSpacer spacing="loose" />
+      <Checkbox id="authorityToLeave" name="authorityToLeave" value={authorityToLeave} onChange={(value) => setAuthorityToLeave(value)}>
+        Authority to leave (optional)
+      </Checkbox>
+    </>
   );
 }

@@ -180,7 +180,7 @@
 }
 
 .shipping-boxes .modal-body {
-    overflow: unset;
+    overflow: scroll;
 }
 
 .shipping-boxes .modal-body table{

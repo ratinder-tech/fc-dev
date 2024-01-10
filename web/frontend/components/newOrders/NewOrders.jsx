@@ -10,7 +10,7 @@ import { ErrorModal } from '../errorModal';
 import { ConfirmModal } from "../confirmModal";
 import { Link, useNavigate } from "react-router-dom";
 
-export function NewOrders() {
+export function NewOrders(props) {
     const fetch = useAuthenticatedFetch();
     const [isLoading, setIsLoading] = useState(true);
     const [startDate, setStartDate] = useState("");
@@ -22,6 +22,11 @@ export function NewOrders() {
     const [showError, setShowError] = useState(false);
     const [showBookOrderModal, setShowBookOrderModal] = useState(false);
     const [showHoldOrderModal, setShowHoldOrderModal] = useState(false);
+    const [errorMsg, setErrorMsg] = useState("");
+    const [orders, setOrders] = useState(null);
+    const [orderMeta, setOrderMeta] = useState(null);
+
+    const navigate = useNavigate();
 
     const getFormattedDate = (originalDateString) => {
         const originalDate = new Date(originalDateString);
@@ -32,26 +37,77 @@ export function NewOrders() {
         return formattedDate;
     }
 
-    const orders = useAppQuery({
-        url: "/api/orders",
-        reactQueryOptions: {
-            onSuccess: () => {
-                setIsLoading(false);
+    const disabledDates = [
+        '2024-01-01',
+        '2024-01-26',
+        '2024-03-29',
+        '2024-03-30',
+        '2024-03-31',
+        '2024-04-01',
+        '2024-04-25',
+        '2024-06-10',
+        '2024-10-07',
+        '2024-12-25',
+        '2024-12-26',
+    ];
+
+    const getAllOrders = async () => {
+        setIsLoading(true);
+        const response = await fetch(
+            `/api/orders`,
+            {
+                method: "GET",
+                headers: { "Accept": "application/json", },
             },
-        },
+        );
+
+        const data = await response.json();
+
+        console.log("orders", data);
+
+        setOrders(data.data);
+        setIsLoading(false);
+    }
+
+    const getOrderMeta = async () => {
+        setIsLoading(true);
+        const response = await fetch(
+            `/api/order-metafields`,
+            {
+                method: "GET",
+                credentials: "include",
+                headers: { "Accept": "application/json", },
+            },
+        );
+
+        const data = await response.json();
+
+        console.log("ordermeta", data);
+
+        setOrderMeta(data);
+        setIsLoading(false);
+    }
+
+    useEffect(() => {
+        getAllOrders();
+        getOrderMeta();
+    }, []);
+
+    const getMetaValue = (metafields, keyValue) => {
+        var location = metafields?.find((element) => element.node.key == keyValue);
+        console.log("location", location?.node?.value);
+        return location != undefined ? location.node.value : null;
+    }
+
+
+    const getOrders = orders?.map(item1 => {
+        const matchingItem2 = orderMeta?.body?.data?.orders?.edges.find(item2 => item2.node.id.includes(item1.id) && getMetaValue(item2.node?.metafields?.edges, "fc_order_status") != "Hold");
+        return { ...item1, ...matchingItem2 };
     });
-
-    console.log("orders", orders);
-
-    // useEffect(() => {
-    //     if (orders.data.data != null) {
-    //         setFilteredOrders(orders);
-    //     }
-    // }, [orders])
 
     useEffect(async () => {
         var filteredData = [];
-        filteredData = await orders?.data?.data.filter((item) => {
+        filteredData = await orders?.filter((item) => {
             let orderMatch = true
             if (startDate != "") {
                 orderMatch = getFormattedDate(item.created_at) >= startDate;
@@ -74,7 +130,7 @@ export function NewOrders() {
     }
 
     const handleSelectAll = (e) => {
-        var selectedIds = e.target.checked ? orders.data.data.map((element) => element.id.toString()) : [];
+        var selectedIds = e.target.checked ? orders.map((element) => element.id.toString()) : [];
         setSelectedOrders(selectedIds);
     }
 
@@ -92,6 +148,7 @@ export function NewOrders() {
             });
             console.log(response);
             setIsLoading(false);
+            getAllOrders();
             setShowHoldOrderModal(false);
         } catch (err) {
             setIsLoading(false);
@@ -99,13 +156,100 @@ export function NewOrders() {
         }
     }
 
+
+
+    // const getQuotes = async () => {
+    //     setIsLoading(true);
+    //     const accessToken = localStorage.getItem("accessToken");
+    //     console.log("accessToken", accessToken);
+    //     const headers = {
+    //         "Accept": "application/json",
+    //         "Content-Type": "application/json",
+    //         "request-type": "shopify_development",
+    //         "version": "3.1.1",
+    //         "Authorization": "Bearer " + accessToken
+    //     }
+    //     const payload = {
+    //         "destinationFirstName": "steve",
+    //         "destinationLastName": "smith",
+    //         "destinationCompanyName": "",
+    //         "destinationEmail": "stevesmith@gmail.com",
+    //         "destinationAddress1": "858, elizabeth st ",
+    //         "destinationAddress2": "",
+    //         "destinationSuburb": "Melbourne",
+    //         "destinationState": "VIC",
+    //         "destinationPostcode": "3000",
+    //         "destinationBuildingType": "residential",
+    //         "isPickupTailLift": "0",
+    //         "destinationPhone": "",
+    //         "parcelContent": "test",
+    //         "valueOfContent": "150",
+    //         "items": [
+    //             {
+    //                 "name": "test box",
+    //                 "type": "box",
+    //                 "contents": "other",
+    //                 "height": "10",
+    //                 "length": "10",
+    //                 "width": "10",
+    //                 "weight": "1",
+    //                 "quantity": "1",
+    //             }
+    //         ],
+    //     }
+    //     axios.get('https://fctest-api.fastcourier.com.au/api/wp/quote', { "params": payload, "headers": headers }).then(response => {
+    //         console.log("merchantDetials", response.data.data);
+    //         setIsLoading(false);
+    //     }).catch(error => {
+    //         console.log(error);
+    //         setIsLoading(false);
+    //     })
+    // }
+
+
+
+    useEffect(() => {
+        //    getOrdersData() 
+        // getQuotes();
+    }, [])
+
+    const handleDateChange = (e) => {
+        const selected = e.target.value;
+
+        // Check if the selected date is in the disabledDates array
+        const selectedDay = new Date(selected).getDay();
+
+        // Get the current date
+        const currentDate = new Date();
+
+        // Disable Saturdays (day 6) and Sundays (day 0)
+        if (selectedDay === 0 || selectedDay === 6) {
+            setErrorMsg('Weekends not allowed');
+            setShowError(true);
+            setCollectionDate('');
+        }
+        // Disable dates before the current date
+        else if (new Date(selected) < currentDate) {
+            setErrorMsg('Dates before today are disabled. Please choose another date.');
+            setShowError(true);
+            setCollectionDate('');
+        }
+        else if (disabledDates.includes(selected)) {
+            setErrorMsg('This date is disabled. Please choose another date.');
+            setShowError(true);
+            setCollectionDate(''); // Clear the selected date if it's disabled
+        } else {
+            setCollectionDate(selected);
+        }
+    };
+
     return (
         <div className="new-orders">
             {isLoading && <Loader />}
             <ErrorModal
                 showModal={showError}
                 onConfirm={setShowError}
-                message="Please select at least 1 order"
+                message={errorMsg}
             />
             <Modal showModal={showBookOrderModal} width="30%">
                 <div className="booking-modal">
@@ -120,7 +264,7 @@ export function NewOrders() {
                                 <span> Collection Date&nbsp;</span>
                             </div>
                             <div className="input-field1">
-                                <input className="input-field-text" type="date" value={collectionDate} onChange={(e) => setCollectionDate(e.target.value)} />
+                                <input className="input-field-text" type="date" value={collectionDate} onChange={(e) => handleDateChange(e)} />
                             </div>
                         </div>
                     </div>
@@ -129,7 +273,7 @@ export function NewOrders() {
                             Close
                         </div>
                         <div className="submit-btn" onClick={() => console.log("process-order")}>
-                            Import
+                            Submit
                         </div>
                     </div>
                 </div>
@@ -195,10 +339,10 @@ export function NewOrders() {
                 </div>
             </div>
             <div className="order-action-buttons">
-                <button className="submit-btn" onClick={() => selectedOrders.length > 0 ? setShowBookOrderModal(true) : setShowError(true)}>
+                <button className="submit-btn" onClick={() => selectedOrders.length > 0 ? setShowBookOrderModal(true) : (setShowError(true), setErrorMsg("Please select at least 1 order"))}>
                     Book Selected Orders
                 </button>
-                <button className="submit-btn" onClick={() => selectedOrders.length > 0 ? setShowHoldOrderModal(true) : setShowError(true)}>
+                <button className="submit-btn" onClick={() => selectedOrders.length > 0 ? setShowHoldOrderModal(true) : (setShowError(true), setErrorMsg("Please select at least 1 order"))}>
                     Hold Selected Orders
                 </button>
             </div>
@@ -218,20 +362,22 @@ export function NewOrders() {
                         <th>Actions</th>
                     </tr>
                     {console.log(selectedOrders)}
-                    {filteredOrders.length > 0 && filteredOrders.map((element, i) => {
-                        return <tr key={i} className='products-row' style={{ background: i % 2 != 0 ? "#F5F8FA" : "#FFFFFF" }}>
-                            <td><input type="checkbox" value={element.id} onChange={(e) => selectOrder(e)} checked={selectedOrders.includes(element.id.toString())} /></td>
-                            <td width="7%">{element.order_number}</td>
-                            <td width="10%">{getFormattedDate(element.created_at)}</td>
-                            <td width="15%">{"NA"}</td>
-                            <td width="15%">{"NA"}</td>
-                            <td width="8%">{element.financial_status}</td>
-                            <td width={"8%"}>{element.subtotal_price}</td>
-                            <td width="7%">{element.line_items[0].fulfillable_quantity}</td>
-                            <td width="15%">{"NA"}</td>
-                            <td width="10%">{"NA"}</td>
-                            <td width="8%">{"NA"}</td>
-                        </tr>
+                    {getOrders?.length > 0 && getOrders?.map((element, i) => {
+                        if (getMetaValue(element.node?.metafields?.edges, "fc_order_status") != "Hold") {
+                            return <tr key={i} className='products-row' style={{ background: i % 2 != 0 ? "#F5F8FA" : "#FFFFFF" }}>
+                                <td><input type="checkbox" value={element.id} onChange={(e) => selectOrder(e)} checked={selectedOrders.includes(element.id.toString())} /></td>
+                                <td width="7%" onClick={() => navigate('/orderDetails')} style={{ cursor: "pointer" }}>{element.order_number}</td>
+                                <td width="10%">{getFormattedDate(element.created_at)}</td>
+                                <td width="15%">{element?.shipping_address?.first_name + " " + element?.shipping_address?.last_name}</td>
+                                <td width="15%">{element?.shipping_address?.address1 + ", " + element?.shipping_address?.address2 + " " + element?.shipping_address?.city}</td>
+                                <td width="8%">{element.financial_status}</td>
+                                <td width={"8%"}>{element.subtotal_price}</td>
+                                <td width="7%">{element.line_items[0].fulfillable_quantity}</td>
+                                <td width="15%">{"Courier Please"}</td>
+                                <td width="10%">{"NA"}</td>
+                                <td width="8%">{"NA"}</td>
+                            </tr>
+                        }
                     })}
                 </table>
             </div>
