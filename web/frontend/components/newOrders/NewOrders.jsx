@@ -101,7 +101,7 @@ export function NewOrders(props) {
 
 
     const getOrders = orders?.map(item1 => {
-        const matchingItem2 = orderMeta?.body?.data?.orders?.edges.find(item2 => item2.node.id.includes(item1.id) && getMetaValue(item2.node?.metafields?.edges, "fc_order_status") != "Hold");
+        const matchingItem2 = orderMeta?.body?.data?.orders?.edges.find(item2 => item2.node.id.includes(item1.id));
         return { ...item1, ...matchingItem2 };
     });
 
@@ -149,6 +149,7 @@ export function NewOrders(props) {
             console.log(response);
             setIsLoading(false);
             getAllOrders();
+            getOrderMeta();
             setShowHoldOrderModal(false);
         } catch (err) {
             setIsLoading(false);
@@ -158,59 +159,58 @@ export function NewOrders(props) {
 
 
 
-    // const getQuotes = async () => {
-    //     setIsLoading(true);
-    //     const accessToken = localStorage.getItem("accessToken");
-    //     console.log("accessToken", accessToken);
-    //     const headers = {
-    //         "Accept": "application/json",
-    //         "Content-Type": "application/json",
-    //         "request-type": "shopify_development",
-    //         "version": "3.1.1",
-    //         "Authorization": "Bearer " + accessToken
-    //     }
-    //     const payload = {
-    //         "destinationFirstName": "steve",
-    //         "destinationLastName": "smith",
-    //         "destinationCompanyName": "",
-    //         "destinationEmail": "stevesmith@gmail.com",
-    //         "destinationAddress1": "858, elizabeth st ",
-    //         "destinationAddress2": "",
-    //         "destinationSuburb": "Melbourne",
-    //         "destinationState": "VIC",
-    //         "destinationPostcode": "3000",
-    //         "destinationBuildingType": "residential",
-    //         "isPickupTailLift": "0",
-    //         "destinationPhone": "",
-    //         "parcelContent": "test",
-    //         "valueOfContent": "150",
-    //         "items": [
-    //             {
-    //                 "name": "test box",
-    //                 "type": "box",
-    //                 "contents": "other",
-    //                 "height": "10",
-    //                 "length": "10",
-    //                 "width": "10",
-    //                 "weight": "1",
-    //                 "quantity": "1",
-    //             }
-    //         ],
-    //     }
-    //     axios.get('https://fctest-api.fastcourier.com.au/api/wp/quote', { "params": payload, "headers": headers }).then(response => {
-    //         console.log("merchantDetials", response.data.data);
-    //         setIsLoading(false);
-    //     }).catch(error => {
-    //         console.log(error);
-    //         setIsLoading(false);
-    //     })
-    // }
+    const bookOrder = async () => {
+        setIsLoading(true);
+        const accessToken = localStorage.getItem("accessToken");
+        console.log("accessToken", accessToken);
+        const headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "request-type": "shopify_development",
+            "version": "3.1.1",
+            "Authorization": "Bearer " + accessToken
+        }
+        const payload = {
+            "orders": [
+                {
+                    "quoteId": "WVQXMGNYEO",
+                    "orderHashId": "GROREYQJYM",
+                    "collectionDate": "2024-01-17",
+                    "destinationEmail": "test@gmail.com",
+                    "destinationPhone": "8523697410",
+                    "wpOrderId": 989,
+                    "destinationFirstName": "Test",
+                    "destinationLastName": "LastName",
+                    "destinationCompanyName": "Techie",
+                    "destinationAddress1": "123",
+                    "destinationAddress2": "8",
+                    "pickupFirstName": "sia",
+                    "pickupLastName": "roy",
+                    "pickupCompanyName": null,
+                    "pickupAddress1": "Sydney address 1",
+                    "pickupAddress2": null,
+                    "pickupPhone": "9632587410",
+                    "pickupEmail": "sialocation@gmail.com",
+                    "atl": false
+                }
+            ],
+            "isReprocessOrders": false,
+            "request_type": "wp"
+        }
+        axios.post('https://fctest-api.fastcourier.com.au/api/wp/bulk_order_booking', payload, {"headers": headers }).then(response => {
+            console.log("merchantDetials", response.data.data);
+            setIsLoading(false);
+        }).catch(error => {
+            console.log(error);
+            setIsLoading(false);
+        })
+    }
 
 
 
     useEffect(() => {
         //    getOrdersData() 
-        // getQuotes();
+        bookOrder();
     }, [])
 
     const handleDateChange = (e) => {
@@ -361,7 +361,7 @@ export function NewOrders(props) {
                         <th>Shipping type</th>
                         <th>Actions</th>
                     </tr>
-                    {console.log(selectedOrders)}
+                    {console.log("getOrders", getOrders)}
                     {getOrders?.length > 0 && getOrders?.map((element, i) => {
                         if (getMetaValue(element.node?.metafields?.edges, "fc_order_status") != "Hold") {
                             return <tr key={i} className='products-row' style={{ background: i % 2 != 0 ? "#F5F8FA" : "#FFFFFF" }}>

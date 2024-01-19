@@ -78,6 +78,17 @@ export function MerchantBillingDetails(props) {
         console.log(response);
     }
 
+    const getCarriers = async () => {
+        const response = await fetch('/api/carrier-services', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        const data = await response.json();
+        console.log("carrier",data);
+    }
+
     function setMerchantDetails(merchant) {
         setBillingFirstName(merchant.billing_first_name);
         setBillingLastName(merchant.billing_last_name);
@@ -203,6 +214,7 @@ export function MerchantBillingDetails(props) {
         getMerchantDetails();
         getCouriers();
         getSuburbs();
+        getCarriers();
     }, []);
 
     return (

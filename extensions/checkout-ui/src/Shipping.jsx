@@ -14,7 +14,8 @@ import {
   useTotalShippingAmount,
   useSessionToken,
   Spinner,
-  Heading
+  Heading,
+  useTotalAmount
 } from '@shopify/ui-extensions-react/checkout';
 import { InlineLayout, InlineSpacer, InlineStack, Pressable } from '@shopify/ui-extensions/checkout';
 import { useEffect, useState } from 'react';
@@ -35,6 +36,7 @@ function Extension() {
   const shippingAddress = useShippingAddress();
   const shippingCost = useTotalShippingAmount();
   const checkoutToken = useCheckoutToken();
+  const totalAmount = useTotalAmount();
   // const sessionToken = useSessionToken();
   const { extension, query, sessionToken } = useApi();
   const [variantData, setVariantData] = useState(null);
@@ -42,6 +44,39 @@ function Extension() {
   const [shippingRate, setShippingRate] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [merchantDetails, setMerchantDetails] = useState(null);
+  const [pickupLocations, setPickupLocations] = useState(null);
+  const [quotes, setQuotes] = useState(null);
+
+
+  useEffect(() => {
+    getMerchantDetails();
+  }, [shippingAddress]);
+
+
+  const getMerchantDetails = async () => {
+    const token = await sessionToken.get();
+
+    const response = await fetch(
+      `https://marvel-geology-relax-resort.trycloudflare.com/api/get-merchant`,
+      {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Content-Type": 'application/json',
+          "Authorization": `Bearer ${token}`,
+        },
+      },
+    );
+
+    const data = await response.json();
+
+    console.log("merchant", data[0]);
+
+    setMerchantDetails(data[0]);
+  }
+
+
 
   useEffect(() => {
     if (isShipping) {
@@ -64,84 +99,51 @@ function Extension() {
     }
   }, [isShipping]);
 
-  // useEffect(() => {
-  //   console.log("shippingAddress", shippingAddress);
-
-  //   const shippingList = [
-  //     {
-  //       "postcode": "2000",
-  //       "shipping_rate": "$28.88"
-  //     },
-  //     {
-  //       "postcode": "3000",
-  //       "shipping_rate": "$38.85"
-  //     },
-  //     {
-  //       "postcode": "4000",
-  //       "shipping_rate": "$44.42"
-  //     },
-  //     {
-  //       "postcode": "5000",
-  //       "shipping_rate": "$58.85"
-  //     },
-  //     {
-  //       "postcode": "6000",
-  //       "shipping_rate": "$63.33"
-  //     }
-  //   ]
-
-  //   const shipping = shippingList.find((element) => shippingAddress.zip == element.postcode);
-
-  //   // Function to change the state after 5 seconds
-  //   const changeStateAfterDelay = () => {
-  //     setIsLoading(true);
-  //     setTimeout(() => {
-  //       setShippingRate(shipping.shipping_rate);
-  //       setIsLoading(false);
-  //     }, 7000); // 5000 milliseconds = 5 seconds
-  //   };
-
-  //   // Call the function when the component mounts
-  //   changeStateAfterDelay();
-  // }, [shippingAddress]);
+  useEffect(() => {
+    if (merchantDetails?.booking_preference == "free_for_all_orders") {
+      setShippingRate("Free");
+    } else if (merchantDetails?.booking_preference == "free_for_basket_value_total" && totalAmount.amount > merchantDetails?.conditional_price) {
+      console.log("Free");
+      setShippingRate("Free");
+    } else {
+      console.log("not free");
+      getQuotes();
+    }
+  }, [shippingAddress, merchantDetails]);
 
 
+  useEffect(() => {
+    if (merchantDetails != null) {
+      getPickupLocations();
+    }
+  }, [shippingAddress, merchantDetails]);
 
 
-  const getMerchantDetails = async () => {
-    const token = await sessionToken.get();
+  const getPickupLocations = async () => {
+    const merchantDomainId = merchantDetails?.id;
+    const headers = {
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "request-type": "shopify_development",
+      "version": "3.1.1",
+      "Authorization": "Bearer " + merchantDetails.access_token
+    }
+
 
     const response = await fetch(
-      `https://austin-feedback-realized-floppy.trycloudflare.com/api/get-merchant`,
+      `https://fctest-api.fastcourier.com.au/api/wp/merchant_domain/locations/${merchantDomainId}`,
       {
         method: "GET",
-        credentials: "include",
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Content-Type": 'application/json',
-          "Authorization": `Bearer ${token}`,
-        },
+        headers: headers
       },
     );
 
     const data = await response.json();
 
-    console.log("data", data);
+    console.log("pickupLocation", data.data);
 
-    setMerchantDetails(data[0]);
+    setPickupLocations(data.data);
   }
-
-  useEffect(() => {
-    getMerchantDetails();
-  }, []);
-
-
-  useEffect(() => {
-    console.log(merchantDetails);
-    if (merchantDetails != null) {
-      getQuotes();
-    }
-  }, [shippingAddress, merchantDetails]);
 
 
   const getQuotes = async () => {
@@ -153,21 +155,23 @@ function Extension() {
       "Authorization": "Bearer " + merchantDetails.access_token
     }
     const payload = {
-      "destinationFirstName": "steve",
-      "destinationLastName": "smith",
-      "destinationCompanyName": "",
+      "destinationFirstName": shippingAddress?.firstName,
+      "destinationLastName": shippingAddress?.lastName,
+      "destinationCompanyName": shippingAddress?.company,
       "destinationEmail": "stevesmith@gmail.com",
-      "destinationAddress1": "858, elizabeth st ",
-      "destinationAddress2": "",
-      "destinationSuburb": "Melbourne",
-      "destinationState": "VIC",
-      "destinationPostcode": "3000",
+      "destinationAddress1": shippingAddress?.address1,
+      "destinationAddress2": shippingAddress?.address2,
+      "destinationSuburb": shippingAddress?.provinceCode,
+      "destinationState": shippingAddress?.city,
+      "destinationPostcode": shippingAddress?.zip,
       "destinationBuildingType": "residential",
-      "isPickupTailLift": "0",
+      "pickupBuildingType": defaultPickupLocation?.building_type,
+      "isPickupTailLift": defaultPickupLocation?.tail_lift,
       "destinationPhone": "",
+      "orderType": "8",
       "parcelContent": "test",
-      "valueOfContent": "150",
-      "items": [
+      "valueOfContent": totalAmount.amount,
+      "items": JSON.stringify([
         {
           "name": "test box",
           "type": "box",
@@ -178,27 +182,22 @@ function Extension() {
           "weight": "1",
           "quantity": "1",
         }
-      ],
+      ]),
     }
-    // axios.get('https://fctest-api.fastcourier.com.au/api/wp/quote', { "params": payload, "headers": headers }).then(response => {
-    //   console.log("merchantDetials", response.data.data);
-    // }).catch(error => {
-    //   console.log(error);
-    // })
 
     const response = await fetch(
       `https://fctest-api.fastcourier.com.au/api/wp/quote?${new URLSearchParams(payload)}`,
       {
         method: "GET",
         credentials: "include",
-        headers: headers,
+        headers: headers
       },
     );
 
     const data = await response.json();
 
-    console.log("data", data);
-
+    console.log("quotes", data.data);
+    setQuotes(data.data);
   }
 
   useEffect(() => {
@@ -226,9 +225,6 @@ function Extension() {
           }
         }
       }`);
-
-      // console.log(queryResult);
-
       if (queryResult.data) {
         setVariantData(queryResult.data.node);
       }
@@ -237,23 +233,39 @@ function Extension() {
 
   if (!variantData) return null;
 
+
+  const defaultPickupLocation = pickupLocations?.find(element => element.is_default == 1);
+
+  console.log("defaultPickupLocation", defaultPickupLocation);
+
   return (
     <Pressable onPress={() => setIsShipping(!isShipping)}>
-
       {isLoading ? <Spinner /> :
-        <InlineStack>
-          <Text>Shipping Cost: </Text>
-          <InlineSpacer spacing="loose" />
-          <InlineSpacer spacing="loose" />
-          <InlineSpacer spacing="loose" />
-          <InlineSpacer spacing="loose" />
-          <InlineSpacer spacing="loose" />
-          <InlineSpacer spacing="loose" />
-          <InlineSpacer spacing="loose" />
-          <InlineSpacer spacing="none" />
-          {/* <Text>{variantData.price.amount}</Text> */}
-          <Heading>{shippingRate}</Heading>
-        </InlineStack>}
+        <>
+          <InlineStack>
+            <Text>Shipping Cost: </Text>
+            <InlineSpacer spacing="loose" />
+            <InlineSpacer spacing="loose" />
+            <InlineSpacer spacing="loose" />
+            <InlineSpacer spacing="loose" />
+            <InlineSpacer spacing="loose" />
+            <InlineSpacer spacing="loose" />
+            <InlineSpacer spacing="loose" />
+            <InlineSpacer spacing="none" />
+            {/* <Text>{variantData.price.amount}</Text> */}
+            <Heading>{quotes?.priceIncludingGst}</Heading>
+          </InlineStack>
+          <InlineStack>
+            <Text>Carrier Name: </Text>
+            <InlineSpacer spacing="loose" />
+            <InlineSpacer spacing="loose" />
+            <InlineSpacer spacing="loose" />
+            <InlineSpacer spacing="loose" />
+            <InlineSpacer spacing="loose" />
+
+            {/* <Text>{variantData.price.amount}</Text> */}
+            <Heading>{quotes?.name}</Heading>
+          </InlineStack></>}
 
     </Pressable>
   );
