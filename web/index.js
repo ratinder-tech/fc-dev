@@ -35,7 +35,6 @@ const url = "mongodb://localhost:27017";
 const database = "local";
 const client = new MongoClient(url);
 
-
 async function getConnection() {
   let result = await client.connect();
   return result.db(database);
@@ -96,7 +95,9 @@ app.post("/api/hold-orders", async (_req, res) => {
   const session = res.locals.shopify.session;
   var orders = [];
   orderIds.forEach(async (id) => {
-    const metafield = new shopify.api.rest.Metafield({ session: res.locals.shopify.session });
+    const metafield = new shopify.api.rest.Metafield({
+      session: res.locals.shopify.session,
+    });
     metafield.order_id = id;
     metafield.namespace = "Order";
     metafield.key = "fc_order_status";
@@ -158,12 +159,14 @@ app.post("/api/carrier-service/delete", async (_req, res) => {
 });
 
 app.get("/api/set-shipping", async (_req, res) => {
-  const checkout = new shopify.api.rest.Checkout({ session: res.locals.shopify.session });
+  const checkout = new shopify.api.rest.Checkout({
+    session: res.locals.shopify.session,
+  });
   checkout.token = _req.body.checkoutToken;
   checkout.shipping_line = {
-    "handle": "shopify-Free%20Shipping-0.00",
-    "price": "10.00",
-    "title": "Free Shipping"
+    handle: "shopify-Free%20Shipping-0.00",
+    price: "10.00",
+    title: "Free Shipping",
   };
   await checkout.save({
     update: true,
@@ -195,7 +198,6 @@ app.get("/api/get-merchant", async (_req, res) => {
   res.status(200).send(response);
 });
 
-
 app.post("/api/shipping-box/create", async (_req, res) => {
   const db = await getConnection();
   const body = _req.body;
@@ -204,12 +206,11 @@ app.post("/api/shipping-box/create", async (_req, res) => {
   res.status(200).send(response);
 });
 
-
 app.delete("/api/shipping-box/delete", async (_req, res) => {
   const db = await getConnection();
   const id = _req.body._id;
   let collection = db.collection("shipping_boxes");
-  const response = await collection.deleteOne({ "_id": new ObjectId(id) });
+  const response = await collection.deleteOne({ _id: new ObjectId(id) });
   res.status(200).send(response);
 });
 
@@ -219,7 +220,6 @@ app.get("/api/shipping-boxes", async (_req, res) => {
   const response = await collection.find({}).toArray();
   res.status(200).send(response);
 });
-
 
 app.get("/api/products/count", async (_req, res) => {
   const countData = await shopify.api.rest.Product.count({
@@ -244,7 +244,7 @@ app.get("/api/get-token", async (_req, res) => {
 
 app.get("/api/order-metafields", async (_req, res) => {
   const session = res.locals.shopify.session;
-  const client = new shopify.api.clients.Graphql({ session })
+  const client = new shopify.api.clients.Graphql({ session });
   const queryString = `{
     orders(first: 20) {
       edges {
@@ -261,17 +261,17 @@ app.get("/api/order-metafields", async (_req, res) => {
         }
       }
     }
-  }`
+  }`;
 
   const data = await client.query({
-    data: queryString
+    data: queryString,
   });
   res.status(200).send(data);
 });
 
 app.get("/api/products-metafields", async (_req, res) => {
   const session = res.locals.shopify.session;
-  const client = new shopify.api.clients.Graphql({ session })
+  const client = new shopify.api.clients.Graphql({ session });
   const queryString = `{
     products(first: 20) {
       edges {
@@ -290,14 +290,13 @@ app.get("/api/products-metafields", async (_req, res) => {
         }
       }
     }
-  }`
+  }`;
 
   const data = await client.query({
-    data: queryString
+    data: queryString,
   });
   res.status(200).send(data);
 });
-
 
 app.post("/api/product/add-location", async (_req, res) => {
   const { location_name, product_ids } = _req.body;
@@ -308,11 +307,11 @@ app.post("/api/product/add-location", async (_req, res) => {
     product.id = parseInt(element);
     product.metafields = [
       {
-        "key": "location",
-        "value": location_name,
-        "type": "single_line_text_field",
-        "namespace": "Product"
-      }
+        key: "location",
+        value: location_name,
+        type: "single_line_text_field",
+        namespace: "Product",
+      },
     ];
     await product.save({
       update: true,
@@ -324,7 +323,15 @@ app.post("/api/product/add-location", async (_req, res) => {
 });
 
 app.post("/api/product/add-dimensions", async (_req, res) => {
-  const { package_type, height, width, length, weight, isIndividual, product_ids } = _req.body;
+  const {
+    package_type,
+    height,
+    width,
+    length,
+    weight,
+    isIndividual,
+    product_ids,
+  } = _req.body;
   const session = res.locals.shopify.session;
   var products = [];
   product_ids.forEach(async (element) => {
@@ -332,41 +339,41 @@ app.post("/api/product/add-dimensions", async (_req, res) => {
     product.id = parseInt(element);
     product.metafields = [
       {
-        "key": "package_type",
-        "value": package_type,
-        "type": "single_line_text_field",
-        "namespace": "Product"
+        key: "package_type",
+        value: package_type,
+        type: "single_line_text_field",
+        namespace: "Product",
       },
       {
-        "key": "height",
-        "value": height,
-        "type": "single_line_text_field",
-        "namespace": "Product"
+        key: "height",
+        value: height,
+        type: "single_line_text_field",
+        namespace: "Product",
       },
       {
-        "key": "width",
-        "value": width,
-        "type": "single_line_text_field",
-        "namespace": "Product"
+        key: "width",
+        value: width,
+        type: "single_line_text_field",
+        namespace: "Product",
       },
       {
-        "key": "length",
-        "value": length,
-        "type": "single_line_text_field",
-        "namespace": "Product"
+        key: "length",
+        value: length,
+        type: "single_line_text_field",
+        namespace: "Product",
       },
       {
-        "key": "weight",
-        "value": weight,
-        "type": "single_line_text_field",
-        "namespace": "Product"
+        key: "weight",
+        value: weight,
+        type: "single_line_text_field",
+        namespace: "Product",
       },
       {
-        "key": "is_individaul",
-        "value": isIndividual,
-        "type": "single_line_text_field",
-        "namespace": "Product"
-      }
+        key: "is_individaul",
+        value: isIndividual,
+        type: "single_line_text_field",
+        namespace: "Product",
+      },
     ];
     await product.save({
       update: true,
