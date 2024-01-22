@@ -57,7 +57,7 @@ function Extension() {
     const token = await sessionToken.get();
 
     const response = await fetch(
-      `https://marvel-geology-relax-resort.trycloudflare.com/api/get-merchant`,
+      `https://disc-singh-arthur-computational.trycloudflare.com/api/get-merchant`,
       {
         method: "GET",
         credentials: "include",
@@ -115,6 +115,7 @@ function Extension() {
   useEffect(() => {
     if (merchantDetails != null) {
       getPickupLocations();
+      getQuotes();
     }
   }, [shippingAddress, merchantDetails]);
 
@@ -145,6 +146,9 @@ function Extension() {
     setPickupLocations(data.data);
   }
 
+  const defaultPickupLocation = pickupLocations?.find(element => element.is_default == 1);
+
+
 
   const getQuotes = async () => {
     const headers = {
@@ -152,7 +156,7 @@ function Extension() {
       "Content-Type": "application/json",
       "request-type": "shopify_development",
       "version": "3.1.1",
-      "Authorization": "Bearer " + merchantDetails.access_token
+      "Authorization": "Bearer " + merchantDetails?.access_token
     }
     const payload = {
       "destinationFirstName": shippingAddress?.firstName,
@@ -165,8 +169,8 @@ function Extension() {
       "destinationState": shippingAddress?.city,
       "destinationPostcode": shippingAddress?.zip,
       "destinationBuildingType": "residential",
-      "pickupBuildingType": defaultPickupLocation?.building_type,
-      "isPickupTailLift": defaultPickupLocation?.tail_lift,
+      "pickupBuildingType": "residential",
+      "isPickupTailLift": "0",
       "destinationPhone": "",
       "orderType": "8",
       "parcelContent": "test",
@@ -234,7 +238,6 @@ function Extension() {
   if (!variantData) return null;
 
 
-  const defaultPickupLocation = pickupLocations?.find(element => element.is_default == 1);
 
   console.log("defaultPickupLocation", defaultPickupLocation);
 

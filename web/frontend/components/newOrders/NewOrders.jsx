@@ -51,6 +51,22 @@ export function NewOrders(props) {
         '2024-12-26',
     ];
 
+    // const getHolidays = () => {
+    //     const accessToken = localStorage.getItem("accessToken");
+    //     const headers = {
+    //         "Accept": "application/json",
+    //         "Content-Type": "application/json",
+    //         "request-type": "shopify_development",
+    //         "version": "3.1.1",
+    //         "Authorization": "Bearer " + accessToken
+    //     }
+    //     axios.get('https://fctest-api.fastcourier.com.au/api/wp/public-holidays', { "headers": headers }).then(response => {
+    //         console.log("response", response);
+    //     }).catch(error => {
+    //         console.log(error);
+    //     })
+    // }
+
     const getAllOrders = async () => {
         setIsLoading(true);
         const response = await fetch(
@@ -158,60 +174,85 @@ export function NewOrders(props) {
     }
 
 
-
-    const bookOrder = async () => {
-        setIsLoading(true);
-        const accessToken = localStorage.getItem("accessToken");
-        console.log("accessToken", accessToken);
-        const headers = {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "request-type": "shopify_development",
-            "version": "3.1.1",
-            "Authorization": "Bearer " + accessToken
-        }
-        const payload = {
-            "orders": [
-                {
-                    "quoteId": "WVQXMGNYEO",
-                    "orderHashId": "GROREYQJYM",
-                    "collectionDate": "2024-01-17",
-                    "destinationEmail": "test@gmail.com",
-                    "destinationPhone": "8523697410",
-                    "wpOrderId": 989,
-                    "destinationFirstName": "Test",
-                    "destinationLastName": "LastName",
-                    "destinationCompanyName": "Techie",
-                    "destinationAddress1": "123",
-                    "destinationAddress2": "8",
-                    "pickupFirstName": "sia",
-                    "pickupLastName": "roy",
-                    "pickupCompanyName": null,
-                    "pickupAddress1": "Sydney address 1",
-                    "pickupAddress2": null,
-                    "pickupPhone": "9632587410",
-                    "pickupEmail": "sialocation@gmail.com",
-                    "atl": false
-                }
-            ],
-            "isReprocessOrders": false,
-            "request_type": "wp"
-        }
-        axios.post('https://fctest-api.fastcourier.com.au/api/wp/bulk_order_booking', payload, {"headers": headers }).then(response => {
-            console.log("merchantDetials", response.data.data);
+    const bookSelectedOrders = async () => {
+        try {
+            setIsLoading(true);
+            const response = await fetch('/api/book-orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    collectionDate: collectionDate,
+                    orderIds: selectedOrders
+                }),
+            });
+            console.log(response);
             setIsLoading(false);
-        }).catch(error => {
-            console.log(error);
+            getAllOrders();
+            getOrderMeta();
+            setShowBookOrderModal(false);
+        } catch (err) {
             setIsLoading(false);
-        })
+            console.log(err);
+        }
     }
 
 
 
-    useEffect(() => {
-        //    getOrdersData() 
-        bookOrder();
-    }, [])
+    // const bookOrder = async () => {
+    //     setIsLoading(true);
+    //     const accessToken = localStorage.getItem("accessToken");
+    //     console.log("accessToken", accessToken);
+    //     const headers = {
+    //         "Accept": "application/json",
+    //         "Content-Type": "application/json",
+    //         "request-type": "shopify_development",
+    //         "version": "3.1.1",
+    //         "Authorization": "Bearer " + accessToken
+    //     }
+    //     const payload = {
+    //         "orders": [
+    //             {
+    //                 "quoteId": "WVQXMGNYEO",
+    //                 "orderHashId": "GROREYQJYM",
+    //                 "collectionDate": "2024-01-17",
+    //                 "destinationEmail": "test@gmail.com",
+    //                 "destinationPhone": "8523697410",
+    //                 "wpOrderId": 989,
+    //                 "destinationFirstName": "Test",
+    //                 "destinationLastName": "LastName",
+    //                 "destinationCompanyName": "Techie",
+    //                 "destinationAddress1": "123",
+    //                 "destinationAddress2": "8",
+    //                 "pickupFirstName": "sia",
+    //                 "pickupLastName": "roy",
+    //                 "pickupCompanyName": null,
+    //                 "pickupAddress1": "Sydney address 1",
+    //                 "pickupAddress2": null,
+    //                 "pickupPhone": "9632587410",
+    //                 "pickupEmail": "sialocation@gmail.com",
+    //                 "atl": false
+    //             }
+    //         ],
+    //         "isReprocessOrders": false,
+    //         "request_type": "wp"
+    //     }
+    //     axios.post('https://fctest-api.fastcourier.com.au/api/wp/bulk_order_booking', payload, {"headers": headers }).then(response => {
+    //         console.log("merchantDetials", response.data.data);
+    //         setIsLoading(false);
+    //     }).catch(error => {
+    //         console.log(error);
+    //         setIsLoading(false);
+    //     })
+    // }
+
+
+
+    // useEffect(() => {
+    //     //    getOrdersData() 
+    //     bookOrder();
+    // }, [])
 
     const handleDateChange = (e) => {
         const selected = e.target.value;
@@ -272,7 +313,7 @@ export function NewOrders(props) {
                         <div className="cancel-btn" onClick={() => setShowBookOrderModal(false)}>
                             Close
                         </div>
-                        <div className="submit-btn" onClick={() => console.log("process-order")}>
+                        <div className="submit-btn" onClick={() => bookSelectedOrders()}>
                             Submit
                         </div>
                     </div>
@@ -363,7 +404,7 @@ export function NewOrders(props) {
                     </tr>
                     {console.log("getOrders", getOrders)}
                     {getOrders?.length > 0 && getOrders?.map((element, i) => {
-                        if (getMetaValue(element.node?.metafields?.edges, "fc_order_status") != "Hold") {
+                        if (getMetaValue(element.node?.metafields?.edges, "fc_order_status") != "Hold" && getMetaValue(element.node?.metafields?.edges, "fc_order_status") != "Booked for collection") {
                             return <tr key={i} className='products-row' style={{ background: i % 2 != 0 ? "#F5F8FA" : "#FFFFFF" }}>
                                 <td><input type="checkbox" value={element.id} onChange={(e) => selectOrder(e)} checked={selectedOrders.includes(element.id.toString())} /></td>
                                 <td width="7%" onClick={() => navigate('/orderDetails')} style={{ cursor: "pointer" }}>{element.order_number}</td>

@@ -29,7 +29,7 @@ export function PaymentMethods(props) {
         // props.setActiveNavItem("pickupLocations");
 
         try {
-            const response = await fetch('/api/carrier-service/create', {
+            const response = await fetch('/api/carrier-service/update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
