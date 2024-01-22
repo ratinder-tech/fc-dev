@@ -112,6 +112,36 @@ app.post("/api/hold-orders", async (_req, res) => {
   res.status(200).send(orders);
 });
 
+app.post("/api/book-orders", async (_req, res) => {
+  const { orderIds, collectionDate } = _req.body;
+  const session = res.locals.shopify.session;
+  var orders = [];
+  orderIds.forEach(async (id) => {
+    const order = new shopify.api.rest.Order({ session: session });
+    order.id = parseInt(id);
+    order.metafields = [
+      {
+        key: "fc_order_status",
+        value: "Booked for collection",
+        type: "single_line_text_field",
+        namespace: "Order",
+      },
+      {
+        key: "collection_date",
+        value: collectionDate,
+        type: "single_line_text_field",
+        namespace: "Order",
+      }
+    ];
+    await order.save({
+      update: true,
+    });
+
+    orders.push(order);
+  });
+  res.status(200).send(orders);
+});
+
 app.get("/api/orders", async (_req, res) => {
   const orders = await shopify.api.rest.Order.all({
     session: res.locals.shopify.session,
@@ -121,17 +151,17 @@ app.get("/api/orders", async (_req, res) => {
 });
 
 app.get("/api/carrier-services", async (_req, res) => {
-  const orders = await shopify.api.rest.CarrierService.all({
+  const carriers = await shopify.api.rest.CarrierService.all({
     session: res.locals.shopify.session,
   });
-  res.status(200).send(orders);
+  res.status(200).send(carriers);
 });
 
 app.post("/api/carrier-service/create", async (_req, res) => {
   const carrier_service = new shopify.api.rest.CarrierService({ session: res.locals.shopify.session });
 
   carrier_service.name = "Fast Courier";
-  carrier_service.callback_url = "https://ja-leasing-attempting-peace.trycloudflare.com/api/shipping-rates";
+  carrier_service.callback_url = "https://selections-ordinance-sie-representing.trycloudflare.com/api/shipping-rates";
   carrier_service.service_discovery = true;
   await carrier_service.save({
     update: true,
@@ -144,7 +174,7 @@ app.post("/api/carrier-service/update", async (_req, res) => {
   const carrier_service = new shopify.api.rest.CarrierService({ session: res.locals.shopify.session });
   carrier_service.id = 66713190619;
   carrier_service.name = "Fast Courier";
-  carrier_service.callback_url = "https://ja-leasing-attempting-peace.trycloudflare.com/api/shipping-rates";
+  carrier_service.callback_url = "https://selections-ordinance-sie-representing.trycloudflare.com/api/shipping-rates";
   await carrier_service.save({
     update: true,
   });
@@ -154,7 +184,7 @@ app.post("/api/carrier-service/update", async (_req, res) => {
 app.post("/api/carrier-service/delete", async (_req, res) => {
   await shopify.api.rest.CarrierService.delete({
     session: res.locals.shopify.session,
-    id: 66713190619,
+    id: 66098495707,
   });
 });
 
