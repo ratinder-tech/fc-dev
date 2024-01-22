@@ -113,3 +113,14 @@ input:checked+.slider:before {
   justify-content: center;
   align-items: center;
 }
+ 
+
+.d-flex{
+  display: flex;
+}
+.align-items-center{
+  align-items: center;
+}
+.align-items-end{
+  align-items: end;
+}

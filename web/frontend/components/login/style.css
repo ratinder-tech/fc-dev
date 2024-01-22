@@ -118,7 +118,17 @@ a {
     align-items: center;
     justify-content: center;
 }
+.fc-yellow-btn{
+    background-color: #ff6900;
+    height: 40px;
+    color: white !important;
+    border-radius: 8px;
+    border: none !important;
+}
+.pointer{
+    cursor: pointer;
 
+}
 .cancel-btn {
     background-color: #fff3ea;
     height: 40px;
