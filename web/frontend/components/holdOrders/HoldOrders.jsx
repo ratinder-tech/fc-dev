@@ -13,18 +13,15 @@ import { Link, useNavigate } from "react-router-dom";
 export function HoldOrders() {
   const fetch = useAuthenticatedFetch();
   const [isLoading, setIsLoading] = useState(false); 
-  const [selectedOrders, setSelectedOrders] = useState([]);
-  const [showError, setShowError] = useState(false);
+  const [selectedOrders, setSelectedOrders] = useState([]); 
   const [orders, setOrders] = useState([]);
-  const [allOrders, setAllOrders] = useState([])
-  const [orderMeta, setOrderMeta] = useState(null);
+  const [allHoldOrders, setAllHoldOrders] = useState([]) 
   const [filterData, setFilterData] = useState({
     startDate: "",
     endDate: "",
     orderId: "",
     shippingType: "",
-  });
-
+  }); 
   const navigate = useNavigate();
 
   const getAllOrders = () => {
@@ -92,7 +89,7 @@ export function HoldOrders() {
           return { ...item1, ...matchingItem2 };
         });
         setOrders(getOrders);
-        setAllOrders(getOrders);
+        setAllHoldOrders(getOrders);
         setIsLoading(false);
       })
       .catch((error) => {
@@ -181,9 +178,8 @@ export function HoldOrders() {
         </div>
         <div className="d-flex align-items-end  ">
         <button className="fc-yellow-btn pointer"
-        onClick={()=>{
-            console.log("filterData", filterData);
-            const filteredOrders = allOrders?.filter((element) => {
+        onClick={()=>{ 
+            const filteredOrders = allHoldOrders?.filter((element) => {
                 const orderDate = new Date(element.created_at);
                 const startDate = new Date(filterData.startDate);
                 const endDate = new Date(filterData.endDate);
@@ -209,7 +205,7 @@ export function HoldOrders() {
               orderId: "",
               shippingType: "",
             })
-            setOrders(allOrders)
+            setOrders(allHoldOrders)
           }}
           
           > Reset </button>

@@ -16,16 +16,20 @@ export function NewOrders(props) {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [collectionDate, setCollectionDate] = useState("");
-    const [filteredOrders, setFilteredOrders] = useState([]);
-    const [orderId, setOrderId] = useState([]);
+    const [filteredOrders, setFilteredOrders] = useState([]); 
     const [selectedOrders, setSelectedOrders] = useState([]);
     const [showError, setShowError] = useState(false);
     const [showBookOrderModal, setShowBookOrderModal] = useState(false);
     const [showHoldOrderModal, setShowHoldOrderModal] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
-    const [orders, setOrders] = useState(null);
-    const [orderMeta, setOrderMeta] = useState(null);
-
+    const [orders, setOrders] = useState(null); 
+    const [allNewOrders, setallNewOrders] = useState([])
+    const [filterData, setFilterData] = useState({
+        startDate: "",
+        endDate: "",
+        orderId: "",
+        shippingType: "",
+      }); 
     const navigate = useNavigate();
 
     const getFormattedDate = (originalDateString) => {
@@ -67,59 +71,134 @@ export function NewOrders(props) {
     //     })
     // }
 
-    const getAllOrders = async () => {
+    // const getAllOrders = async () => {
+    //     setIsLoading(true);
+    //     const response = await fetch(
+    //         `/api/orders`,
+    //         {
+    //             method: "GET",
+    //             headers: { "Accept": "application/json", },
+    //         },
+    //     );
+
+    //     const data = await response.json(); 
+
+    //     setOrders(data.data);
+    //     setIsLoading(false);
+    // }
+
+    const getAllOrders = () => {
         setIsLoading(true);
-        const response = await fetch(
-            `/api/orders`,
-            {
-                method: "GET",
-                headers: { "Accept": "application/json", },
-            },
-        );
+    
+        return new Promise((resolve, reject) => {
+          fetch(`/api/orders`, {
+            method: "GET",
+            credentials: "include",
+            headers: { Accept: "application/json" },
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(
+                  `Failed to fetch orders, status: ${response.status}`
+                );
+              }
+              return response.json();
+            })
+            .then((data) => {
+              resolve(data.data);
+            })
+            .catch((error) => {
+              console.error("Error fetching orders:", error);
+              setIsLoading(false);
+              reject(error);
+            });
+        });
+      };
 
-        const data = await response.json();
+    // const getOrderMeta = async () => {
+    //     setIsLoading(true);
+    //     const response = await fetch(
+    //         `/api/order-metafields`,
+    //         {
+    //             method: "GET",
+    //             credentials: "include",
+    //             headers: { "Accept": "application/json", },
+    //         },
+    //     );
 
-        console.log("orders", data);
+    //     const data = await response.json();
 
-        setOrders(data.data);
-        setIsLoading(false);
-    }
+    //     console.log("ordermeta", data);
 
-    const getOrderMeta = async () => {
-        setIsLoading(true);
-        const response = await fetch(
-            `/api/order-metafields`,
-            {
-                method: "GET",
-                credentials: "include",
-                headers: { "Accept": "application/json", },
-            },
-        );
+    //     setOrderMeta(data);
+    //     setIsLoading(false);
+    // }
 
-        const data = await response.json();
+    const getOrderMeta = () => {
+        return new Promise((resolve, reject) => {
+          fetch(`/api/order-metafields`, {
+            method: "GET",
+            credentials: "include",
+            headers: { Accept: "application/json" },
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(
+                  `Failed to fetch order metafields, status: ${response.status}`
+                );
+              }
+              return response.json();
+            })
+            .then((data) => {
+              resolve(data);
+            })
+            .catch((error) => {
+              console.error("Error fetching order metafields:", error);
+              setIsLoading(false);
+              reject(error);
+            });
+        });
+      };
 
-        console.log("ordermeta", data);
-
-        setOrderMeta(data);
-        setIsLoading(false);
-    }
-
+    // useEffect(() => {
+    //     getAllOrders();
+    //     getOrderMeta();
+    // }, []);
     useEffect(() => {
-        getAllOrders();
-        getOrderMeta();
-    }, []);
+        setIsLoading(true);
+        Promise.all([getAllOrders(), getOrderMeta()])
+          .then(([ordersData, orderMetaData]) => {
+            const getOrders = ordersData?.map((item1) => {
+              const matchingItem2 = orderMetaData?.body?.data?.orders?.edges.find(
+                (item2) => item2.node.id.includes(item1.id)
+              );
+              return { ...item1, ...matchingItem2 };
+            });
+ 
+
+
+
+
+
+
+
+            setOrders(getOrders);
+            setallNewOrders(getOrders);
+            setIsLoading(false);
+          })
+          .catch((error) => {
+            console.error("error:", error);
+          });
+      }, []);
 
     const getMetaValue = (metafields, keyValue) => {
         var location = metafields?.find((element) => element.node.key == keyValue);
-        console.log("location", location?.node?.value);
+        
         return location != undefined ? location.node.value : null;
     }
 
 
-    const getOrders = orders?.map(item1 => {
-        const matchingItem2 = orderMeta?.body?.data?.orders?.edges.find(item2 => item2.node.id.includes(item1.id));
-        return { ...item1, ...matchingItem2 };
-    });
+  
 
     useEffect(async () => {
         var filteredData = [];
@@ -340,30 +419,52 @@ export function NewOrders(props) {
                 </div>
             </Modal>
             <div className="orders-filters">
-                <div className="input-container">
-                    <div className="input-lebel">
-                        <span> Start Date&nbsp;</span>
-                    </div>
-                    <div className="input-field1">
-                        <input className="input-field-text" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-                    </div>
-                </div>
-                <div className="input-container">
-                    <div className="input-lebel">
-                        <span> End Date&nbsp;</span>
-                    </div>
-                    <div className="input-field1">
-                        <input className="input-field-text" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-                    </div>
-                </div>
-                <div className="input-container">
-                    <div className="input-lebel">
-                        <span> Order Number&nbsp;</span>
-                    </div>
-                    <div className="input-field1">
-                        <input className="input-field-text" type="text" placeholder="Order Number" />
-                    </div>
-                </div>
+            <div className="input-container">
+          <div className="input-lebel">
+            <span> Start Date&nbsp;</span>
+          </div>
+          <div className="input-field1">
+            <input
+              className="input-field-text"
+              type="date"
+              onChange={(e) =>
+                setFilterData({ ...filterData, startDate: e.target.value })
+              }
+              value={filterData.startDate}
+            />
+          </div>
+        </div>
+        <div className="input-container">
+          <div className="input-lebel">
+            <span> End Date&nbsp;</span>
+          </div>
+          <div className="input-field1">
+            <input
+              className="input-field-text"
+              type="date"
+              onChange={(e) =>
+                setFilterData({ ...filterData, endDate: e.target.value })
+              }
+              value={filterData.endDate}
+            />
+          </div>
+        </div>
+        <div className="input-container">
+          <div className="input-lebel">
+            <span> Order Id&nbsp;</span>
+          </div>
+          <div className="input-field1">
+            <input
+              className="input-field-text"
+              type="text"
+              placeholder="Order Id"
+              onChange={(e) =>
+                setFilterData({ ...filterData, orderId: e.target.value })
+              }
+              value={filterData.orderId}
+            />
+          </div>
+        </div>
                 <div className="input-container">
                     <div className="input-lebel">
                         <span> Order Shipping Type&nbsp;</span>
@@ -374,9 +475,37 @@ export function NewOrders(props) {
                         </select>
                     </div>
                 </div>
+                <div className="d-flex align-items-end  ">
+        <button className="fc-yellow-btn pointer"
+        onClick={()=>{ 
+            const filteredOrders = allNewOrders?.filter((element) => {
+                const orderDate = new Date(element.created_at);
+                const startDate = new Date(filterData.startDate);
+                const endDate = new Date(filterData.endDate);
+                const orderDateCheck =
+                  (filterData.startDate !== "" && filterData.endDate !== "") ? (orderDate >= startDate && orderDate <= endDate) :true;
+                const orderIdCheck =(filterData.orderId !=="")? element.order_number.toString().includes(filterData.orderId.toString()) :true; 
+                   
+                return orderDateCheck && orderIdCheck;
+            });
+            setOrders(filteredOrders);
+        }}
+        
+        >Filter</button>
+      </div>
                 <div className="filter-buttons">
-                    {/* <button> Filter </button> */}
-                    <button> Reset </button>
+                <button className="pointer"
+          onClick={()=>{
+            setFilterData({
+              startDate: "",
+              endDate: "",
+              orderId: "",
+              shippingType: "",
+            })
+            setOrders(allNewOrders)
+          }}
+          
+          > Reset </button>
                 </div>
             </div>
             <div className="order-action-buttons">
@@ -402,8 +531,8 @@ export function NewOrders(props) {
                         <th>Shipping type</th>
                         <th>Actions</th>
                     </tr>
-                    {console.log("getOrders", getOrders)}
-                    {getOrders?.length > 0 && getOrders?.map((element, i) => {
+                
+                    {orders?.length > 0 && orders?.map((element, i) => {
                         if (getMetaValue(element.node?.metafields?.edges, "fc_order_status") != "Hold" && getMetaValue(element.node?.metafields?.edges, "fc_order_status") != "Booked for collection") {
                             return <tr key={i} className='products-row' style={{ background: i % 2 != 0 ? "#F5F8FA" : "#FFFFFF" }}>
                                 <td><input type="checkbox" value={element.id} onChange={(e) => selectOrder(e)} checked={selectedOrders.includes(element.id.toString())} /></td>
