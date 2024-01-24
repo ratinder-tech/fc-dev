@@ -2,7 +2,7 @@
 
 name = "Fast Courier"
 client_id = "5141ee570075449f84e5e831ff873ed6"
-application_url = "https://aspect-devon-vessels-fewer.trycloudflare.com"
+application_url = "https://heavily-biographies-zinc-electro.trycloudflare.com"
 embedded = true
 
 [access_scopes]
@@ -11,10 +11,10 @@ scopes = "read_products,write_products,read_orders,write_orders,read_all_orders,
 
 [auth]
 redirect_urls = [
-  "https://aspect-devon-vessels-fewer.trycloudflare.com/auth/callback",
-  "https://aspect-devon-vessels-fewer.trycloudflare.com/auth/shopify/callback",
-  "https://aspect-devon-vessels-fewer.trycloudflare.com/api/auth/callback",
-  "https://aspect-devon-vessels-fewer.trycloudflare.com/.shopify/graphiql/auth/callback"
+  "https://heavily-biographies-zinc-electro.trycloudflare.com/auth/callback",
+  "https://heavily-biographies-zinc-electro.trycloudflare.com/auth/shopify/callback",
+  "https://heavily-biographies-zinc-electro.trycloudflare.com/api/auth/callback",
+  "https://heavily-biographies-zinc-electro.trycloudflare.com/.shopify/graphiql/auth/callback"
 ]
 
 [webhooks]

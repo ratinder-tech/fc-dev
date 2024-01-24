@@ -22,6 +22,10 @@ target = "purchase.checkout.contact.render-after"
 module = "./src/Shipping.jsx"
 target = "purchase.checkout.reductions.render-after"
 
+[[extensions.targeting]]
+module = "./src/ThankYouPage.jsx"
+target = "customer-account.order-status.cart-line-item.render-after"
+
 [extensions.capabilities]
 # Gives your extension access to directly query Shopify’s storefront API.
 # https://shopify.dev/docs/api/checkout-ui-extensions/unstable/configuration#api-access

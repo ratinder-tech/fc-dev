@@ -71,6 +71,33 @@ app.get("/api/shipping-rates", async (_req, res) => {
   res.status(200).send(response);
 });
 
+// app.get("/api/update-order-status", async (_req, res) => {
+//   _req.body.forEach(async (element) => {
+//     const order = new shopify.api.rest.Order({ session: res.locals.shopify.session });
+//     order.id = parseInt(id);
+//     order.metafields = [
+//       {
+//         key: "fc_order_status",
+//         value: "Booked for collection",
+//         type: "single_line_text_field",
+//         namespace: "Order",
+//       },
+//       {
+//         key: "collection_date",
+//         value: collectionDate,
+//         type: "single_line_text_field",
+//         namespace: "Order",
+//       }
+//     ];
+//     await order.save({
+//       update: true,
+//     });
+
+//     orders.push(order);
+//   });
+//   res.status(200).send("");
+// });
+
 // Set up Shopify authentication and webhook handling
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
