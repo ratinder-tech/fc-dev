@@ -52,23 +52,27 @@ const STATIC_PATH =
 
 const app = express();
 
-app.get("/api/shipping-rates", async (_req, res) => {
-  const response = `{
+app.post("/api/shipping-rates", async (_req, res) => {
+  // console.log(_req.body,"11111111111111111111")
+  console.log(_req,"11111111111111111111111")
+ 
+  const response = {
     "rates": [
         {
             "service_name": "Fast Courier",
             "service_code": "FC",
-            "total_price": "395",
+            "total_price": "39500",
             "description": "This is the fastest option by far",
             "currency": "AUD"
         },
     ]
-}`;
+};
 
-  logger.info("Info message");
-  logger.warn("Warning message");
-  logger.error("Error message");
-  res.status(200).send(response);
+  // logger.info("Info message");
+  logger.info(_req);
+  // logger.warn("Warning message");
+  // logger.error("Error message");
+  res.status(200).json(response);
 });
 
 // app.get("/api/update-order-status", async (_req, res) => {
@@ -188,7 +192,7 @@ app.post("/api/carrier-service/create", async (_req, res) => {
   const carrier_service = new shopify.api.rest.CarrierService({ session: res.locals.shopify.session });
 
   carrier_service.name = "Fast Courier";
-  carrier_service.callback_url = "https://selections-ordinance-sie-representing.trycloudflare.com/api/shipping-rates";
+  carrier_service.callback_url = "https://wilson-barcelona-colours-located.trycloudflare.com/api/shipping-rates";
   carrier_service.service_discovery = true;
   await carrier_service.save({
     update: true,
@@ -201,7 +205,7 @@ app.post("/api/carrier-service/update", async (_req, res) => {
   const carrier_service = new shopify.api.rest.CarrierService({ session: res.locals.shopify.session });
   carrier_service.id = 66713190619;
   carrier_service.name = "Fast Courier";
-  carrier_service.callback_url = "https://selections-ordinance-sie-representing.trycloudflare.com/api/shipping-rates";
+  carrier_service.callback_url = "https://wilson-barcelona-colours-located.trycloudflare.com/api/shipping-rates";
   await carrier_service.save({
     update: true,
   });

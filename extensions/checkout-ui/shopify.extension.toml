@@ -23,6 +23,10 @@ module = "./src/Shipping.jsx"
 target = "purchase.checkout.reductions.render-after"
 
 [[extensions.targeting]]
+module = "./src/NewPage.js"
+target = "purchase.thank-you.header.render-after"
+
+[[extensions.targeting]]
 module = "./src/ThankYouPage.jsx"
 target = "customer-account.order-status.cart-line-item.render-after"
 

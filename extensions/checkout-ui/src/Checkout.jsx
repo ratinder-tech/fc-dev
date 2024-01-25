@@ -21,6 +21,8 @@ function Extension() {
   const { extension } = useApi();
   const shippingAddress = useShippingAddress();
   const checkoutToken = useCheckoutToken();
+  const test = useApi()
+  console.log(test,"test")
 
   const [companyName, setCompanyName] = useState("");
   const [authorityToLeave, setAuthorityToLeave] = useState(false);
