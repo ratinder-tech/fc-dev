@@ -1,6 +1,7 @@
 // @ts-check
 import { join } from "path";
 import { readFileSync } from "fs";
+// const bodyParser = require('body-parser');
 import express from "express";
 import serveStatic from "serve-static";
 
@@ -10,6 +11,7 @@ import GDPRWebhookHandlers from "./gdpr.js";
 import { MongoClient, ObjectId } from "mongodb";
 import log4js from "log4js";
 import * as fs from "fs";
+import bodyParser from "body-parser";
 
 
 
@@ -51,10 +53,11 @@ const STATIC_PATH =
     : `${process.cwd()}/frontend/`;
 
 const app = express();
-
+app.use(bodyParser.json());
 app.post("/api/shipping-rates", async (_req, res) => {
   // console.log(_req.body,"11111111111111111111")
-  console.log(_req,"11111111111111111111111")
+  console.log(_req,"xxxxxxxxxxxxxxxx")
+  console.log(_req.body,"BODY")
  
   const response = {
     "rates": [
