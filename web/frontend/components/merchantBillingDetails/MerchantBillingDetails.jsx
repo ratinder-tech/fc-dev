@@ -27,6 +27,7 @@ export function MerchantBillingDetails(props) {
     const [processAfterMinutes, setProcessAfterMinutes] = useState(60);
     const [processAfterDays, setProcessAfterDays] = useState(0);
     const [isDropOffTailLift, setIsDropOffTailLift] = useState(false);
+    const [tailLiftValue, setTailLiftValue] = useState("");
     const [suburbs, setSuburbs] = useState([]);
     const [couriers, setCouriers] = useState([]);
     const [activeCouriers, setActiveCouriers] = useState([]);
@@ -86,7 +87,7 @@ export function MerchantBillingDetails(props) {
             }
         });
         const data = await response.json();
-        console.log("carrier",data);
+        console.log("carrier", data);
     }
 
     function setMerchantDetails(merchant) {
@@ -177,6 +178,7 @@ export function MerchantBillingDetails(props) {
             "insuranceType": insuranceType,
             "insuranceAmount": insuranceAmount,
             "isDropOffTailLift": isDropOffTailLift,
+            "tailLiftValue": tailLiftValue,
             "isAuthorityToLeave": "0",
             "processAfterMinutes": processAfterMinutes,
             "processAfterDays": processAfterDays,
@@ -414,11 +416,17 @@ export function MerchantBillingDetails(props) {
                     <input type="radio" name="automaticOrderProcess" id="manual" value="0" checked={automaticOrderProcess == 0} onChange={(e) => setAutomaticOrderProcess(e.target.value)} />
                     <label htmlFor="manual">&nbsp;Manual</label>
                 </div>
-            </div>
+            </div> */}
             <div className="input-checkbox">
                 <input type="checkbox" name="isDropOffTailLift" id="isDropOffTailLift" onChange={(e) => setIsDropOffTailLift(e.target.checked)} />
                 <label htmlFor="isDropOffTailLift">&nbsp;Default tail lift on delivery</label>
-            </div> */}
+                {
+                    isDropOffTailLift &&
+                    <span className="conditional-price">
+                        {"> It will only apply for packages over "}<input type="type" name="tailLiftValue" className="input-field-text1" value={tailLiftValue} onChange={(e) => setTailLiftValue(e.target.value)} /> {" Kgs."}
+                    </span>
+                }
+            </div>
             <div className="submit">
                 <button className="submit-btn" onClick={() => activateMerchant()}>
                     Save details

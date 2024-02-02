@@ -63,3 +63,17 @@
 .payment-methods .submit-btn {
     width: 100px;
 }
+
+.add-payment-methods {
+    margin-bottom: 20px;
+}
+
+.expiry-section{
+    display: flex;
+    padding: 0 10px;
+    justify-content: space-between;
+}
+
+.expiry-section .input-container1 {
+    width: 30%;
+}

@@ -55,21 +55,79 @@ const STATIC_PATH =
 const app = express();
 app.use(bodyParser.json());
 app.post("/api/shipping-rates", async (_req, res) => {
-  // console.log(_req.body,"11111111111111111111")
-  console.log(_req,"xxxxxxxxxxxxxxxx")
-  console.log(_req.body,"BODY")
- 
+  console.log(_req, "xxxxxxxxxxxxxxxx")
+  console.log(_req.body, "BODY")
+
+  const db = await getConnection();
+  let collection = db.collection("merchant_details");
+  const merchant = await collection.find({}).toArray();
+
+  console.log("merchant===", merchant[0]);
+  const headers = {
+    "Accept": "application/json",
+    "Content-Type": "application/json",
+    "request-type": "shopify_development",
+    "version": "3.1.1",
+    "Authorization": "Bearer " + merchant[0]?.access_token
+  }
+
+  const destination = _req?.body?.rate?.destination;
+  const payload = {
+    "destinationFirstName": destination.name,
+    "destinationLastName": "",
+    "destinationCompanyName": "",
+    "destinationEmail": "stevesmith@gmail.com",
+    "destinationAddress1": destination.address1,
+    "destinationAddress2": destination.address2 != null ? destination.address2 : "",
+    "destinationSuburb": destination.city,
+    "destinationState": destination.province,
+    "destinationPostcode": destination.postal_code,
+    "destinationBuildingType": "residential",
+    "pickupBuildingType": "residential",
+    "isPickupTailLift": "0",
+    "destinationPhone": "",
+    "orderType": "8",
+    "parcelContent": "test",
+    "valueOfContent": destination.items[0].price,
+    "items": JSON.stringify([
+      {
+        "name": "test box",
+        "type": "box",
+        "contents": "other",
+        "height": "10",
+        "length": "10",
+        "width": "10",
+        "weight": "1",
+        "quantity": "1",
+      }
+    ]),
+  }
+
+  const quote = await fetch(
+    `https://fctest-api.fastcourier.com.au/api/wp/quote?${new URLSearchParams(payload)}`,
+    {
+      method: "GET",
+      credentials: "include",
+      headers: headers
+    },
+  );
+
+  const data = await quote.json();
+
+  console.log("quote===", data);
+
   const response = {
     "rates": [
-        {
-            "service_name": "Fast Courier",
-            "service_code": "FC",
-            "total_price": "39500",
-            "description": "This is the fastest option by far",
-            "currency": "AUD"
-        },
+      {
+        "service_name": "Fast Courier",
+        "service_code": "FC",
+        "total_price": data?.data?.priceIncludingGst,
+        "description": data?.data?.name,
+        "currency": "AUD",
+        "max_delivery_date": data?.data?.eta
+      },
     ]
-};
+  };
 
   // logger.info("Info message");
   logger.info(_req);
@@ -78,32 +136,26 @@ app.post("/api/shipping-rates", async (_req, res) => {
   res.status(200).json(response);
 });
 
-// app.get("/api/update-order-status", async (_req, res) => {
-//   _req.body.forEach(async (element) => {
-//     const order = new shopify.api.rest.Order({ session: res.locals.shopify.session });
-//     order.id = parseInt(id);
-//     order.metafields = [
-//       {
-//         key: "fc_order_status",
-//         value: "Booked for collection",
-//         type: "single_line_text_field",
-//         namespace: "Order",
-//       },
-//       {
-//         key: "collection_date",
-//         value: collectionDate,
-//         type: "single_line_text_field",
-//         namespace: "Order",
-//       }
-//     ];
-//     await order.save({
-//       update: true,
-//     });
+app.get("/api/update-order-status", async (_req, res) => {
+  _req.body.forEach(async (element) => {
+    const order = new shopify.api.rest.Order({ session: res.locals.shopify.session });
+    // order.id = parseInt(id);
+    order.metafields = [
+      {
+        key: "fc_order_status",
+        value: "Booked for collection",
+        type: "single_line_text_field",
+        namespace: "Order",
+      },
+    ];
+    await order.save({
+      update: true,
+    });
 
-//     orders.push(order);
-//   });
-//   res.status(200).send("");
-// });
+    // orders.push(order);
+  });
+  res.status(200).send("");
+});
 
 // Set up Shopify authentication and webhook handling
 app.get(shopify.config.auth.path, shopify.auth.begin());
@@ -129,6 +181,11 @@ app.post("/api/hold-orders", async (_req, res) => {
   const session = res.locals.shopify.session;
   var orders = [];
   orderIds.forEach(async (id) => {
+    const fulfillment_order = new shopify.api.rest.FulfillmentOrder({ session: res.locals.shopify.session });
+    fulfillment_order.id = parseInt(id);
+    await fulfillment_order.hold({
+      body: { "fulfillment_hold": { "reason": "inventory_out_of_stock", "reason_notes": "Not enough inventory to complete this work.", "fulfillment_order_line_items": [{ "id": "", "quantity": 1 }] } },
+    });
     const metafield = new shopify.api.rest.Metafield({
       session: res.locals.shopify.session,
     });
@@ -151,6 +208,11 @@ app.post("/api/book-orders", async (_req, res) => {
   const session = res.locals.shopify.session;
   var orders = [];
   orderIds.forEach(async (id) => {
+    const fulfillment_order = new shopify.api.rest.FulfillmentOrder({ session: session });
+    fulfillment_order.id = parseInt(id);
+    await fulfillment_order.reschedule({
+      body: { "fulfillment_order": { "new_fulfill_at": collectionDate } },
+    });
     const order = new shopify.api.rest.Order({ session: session });
     order.id = parseInt(id);
     order.metafields = [
@@ -184,6 +246,20 @@ app.get("/api/orders", async (_req, res) => {
   res.status(200).send(orders);
 });
 
+// app.get("/api/fulfill-hold", async (_req, res) => {
+//   try {
+
+//     const fulfillment_order = new shopify.api.rest.FulfillmentOrder({ session: res.locals.shopify.session });
+//     fulfillment_order.id = 5563206402267;
+//     await fulfillment_order.hold({
+//       body: { "fulfillment_hold": { "reason": "inventory_out_of_stock", "reason_notes": "Not enough inventory to complete this work.", "fulfillment_order_line_items": [{ "id": "", "quantity": 1 }] } },
+//     });
+//     res.status(200).send(fulfillment_order);
+//   } catch (error) {
+//     console.log("err===", error);
+//   }
+// });
+
 app.get("/api/carrier-services", async (_req, res) => {
   const carriers = await shopify.api.rest.CarrierService.all({
     session: res.locals.shopify.session,
@@ -193,9 +269,8 @@ app.get("/api/carrier-services", async (_req, res) => {
 
 app.post("/api/carrier-service/create", async (_req, res) => {
   const carrier_service = new shopify.api.rest.CarrierService({ session: res.locals.shopify.session });
-
   carrier_service.name = "Fast Courier";
-  carrier_service.callback_url = "https://wilson-barcelona-colours-located.trycloudflare.com/api/shipping-rates";
+  carrier_service.callback_url = "https://through-shoot-thick-trick.trycloudflare.com/api/shipping-rates";
   carrier_service.service_discovery = true;
   await carrier_service.save({
     update: true,
@@ -208,7 +283,7 @@ app.post("/api/carrier-service/update", async (_req, res) => {
   const carrier_service = new shopify.api.rest.CarrierService({ session: res.locals.shopify.session });
   carrier_service.id = 66713190619;
   carrier_service.name = "Fast Courier";
-  carrier_service.callback_url = "https://wilson-barcelona-colours-located.trycloudflare.com/api/shipping-rates";
+  carrier_service.callback_url = "https://through-shoot-thick-trick.trycloudflare.com/api/shipping-rates";
   await carrier_service.save({
     update: true,
   });
@@ -310,11 +385,11 @@ app.get("/api/order-metafields", async (_req, res) => {
   const session = res.locals.shopify.session;
   const client = new shopify.api.clients.Graphql({ session });
   const queryString = `{
-    orders(first: 20) {
+    orders(first: 50) {
       edges {
         node {
           id
-          metafields(first: 20) {
+          metafields(first: 50) {
             edges {
               node {
                 key

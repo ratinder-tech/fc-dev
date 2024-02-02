@@ -8,6 +8,13 @@ import { Loader } from "../loader";
 export function PaymentMethods(props) {
     const [paymentMethods, setPaymentMethods] = useState([]);
     const [selectedMethod, setSelectedMethod] = useState("");
+    const [cardNumber, setCardNumber] = useState("");
+    const [expiryMonth, setExpiryMonth] = useState("");
+    const [expiryYear, setExpiryYear] = useState("");
+    const [cvc, setCvc] = useState("");
+    const [email, setEmail] = useState("");
+    const [name, setName] = useState("");
+    const [companyName, setCompanyName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
     const fetch = useAuthenticatedFetch();
@@ -29,14 +36,14 @@ export function PaymentMethods(props) {
         // props.setActiveNavItem("pickupLocations");
 
         try {
-            const response = await fetch('/api/carrier-service/update', {
-                method: 'POST',
+            const response = await fetch('/api/fulfill-hold', {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    package_name: "Fast Courier",
-                }),
+                // body: JSON.stringify({
+                //     package_name: "Fast Courier",
+                // }),
             });
             const data = await response.json();
             console.log("carrier", data);
@@ -91,6 +98,93 @@ export function PaymentMethods(props) {
     return (
         <div className="payment-methods">
             {isLoading && <Loader />}
+            <div className='add-payment-methods'>
+                <div className="input-row">
+                    <div className="input-container1">
+                        <div className="input-lebel1">
+                            <span> Card Number&nbsp;</span><span style={{ color: "red" }}> *</span>
+                        </div>
+                        <div className="input-field">
+                            <input className="input-field-text1" type="text" value={cardNumber} placeholder="Card Number" onChange={(e) => setCardNumber(e.target.value)} />
+                        </div>
+                    </div>
+                    <div className='expiry-section'>
+                        <div className="input-container1">
+                            <div className="input-lebel1">
+                                <span> Expiry Month&nbsp;</span><span style={{ color: "red" }}> *</span>
+                            </div>
+                            <div className="input-field">
+                                <input className="input-field-text1" type="text" value={expiryMonth} placeholder="MM" onChange={(e) => setExpiryMonth(e.target.value)} />
+                            </div>
+                        </div>
+                        <div className="input-container1">
+                            <div className="input-lebel1">
+                                <span> Expiry Year&nbsp;</span><span style={{ color: "red" }}> *</span>
+                            </div>
+                            <div className="input-field">
+                                <input className="input-field-text1" type="text" value={name} placeholder="YY" onChange={(e) => setExpiryYear(e.target.value)} />
+                            </div>
+                        </div>
+                        <div className="input-container1">
+                            <div className="input-lebel1">
+                                <span> CVC&nbsp;</span><span style={{ color: "red" }}> *</span>
+                            </div>
+                            <div className="input-field">
+                                <input className="input-field-text1" type="text" value={cvc} placeholder="CVC" onChange={(e) => setCvc(e.target.value)} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="input-row">
+                    <div className="input-container1">
+                        <div className="input-lebel1">
+                            <span> Email&nbsp;</span><span style={{ color: "red" }}> *</span>
+                        </div>
+                        <div className="input-field">
+                            <input className="input-field-text1" type="text" value={email} placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
+                        </div>
+                    </div>
+                    <div className="input-container1">
+                        <div className="input-lebel1">
+                            <span> Name&nbsp;</span><span style={{ color: "red" }}> *</span>
+                        </div>
+                        <div className="input-field">
+                            <input className="input-field-text1" type="text" value={name} placeholder="Name" onChange={(e) => setName(e.target.value)} />
+                        </div>
+                    </div>
+                </div>
+                <div className="input-row">
+                    <div className="input-container1">
+                        <div className="input-lebel1">
+                            <span> Company Name&nbsp;</span>
+                        </div>
+                        <div className="input-field">
+                            <input className="input-field-text1" type="text" value={companyName} placeholder="Company Name" onChange={(e) => setCompanyName(e.target.value)} />
+                        </div>
+                    </div>
+                </div>
+                <div className="submit">
+                    <button className="submit-btn" onClick={() => savePaymentMethod()}>
+                        Add New Card
+                    </button>
+                </div>
+            </div>
+            <div className="pickup-locations-table">
+                <table>
+                    <tr className="table-head">
+                        <th>Payment Method</th>
+                        <th>Card Number</th>
+                        <th>Expiry</th>
+                        <th>Actions</th>
+                    </tr>
+                    <tr className='products-row'>
+                        <td width="25%"></td>
+                        <td width="25%"></td>
+                        <td width="25%"></td>
+                        <td width="25%"></td>
+                    </tr>
+                </table>
+            </div>
             <div className="payment-heading">
                 Payment Methods<span style={{ color: "red" }}> *</span>
             </div>
