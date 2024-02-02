@@ -17,14 +17,40 @@ jobs:
       #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       #     aws-region: ${{ secrets.AWS_REGION }}
-      
+      - name: Checkout the files
+        uses: actions/checkout@v2
 
-      - name: Login to EC2 instance
+      - name: Deploy to Server 1
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.EC2_HOST }}
+          REMOTE_USER: ${{ secrets.EC2_USERNAME }}
+          TARGET: ${{ secrets.TARGET_DIR }}
+
+      - name: Executing remote ssh commands using ssh key
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            sudo yum update
+
+
+
+      # sudo apt-get install -y apache2
+      # sudo systemctl start apache2
+      # sudo systemctl enable apache2
+      # cd home
+      # sudo mv * /var/www/html
+
+      # - name: Login to EC2 instance
+      #   uses: appleboy/ssh-action@master
+      #   with:
+      #     host: ${{ secrets.EC2_HOST }}
+      #     username: ${{ secrets.EC2_USERNAME }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Pull code from main branch
         run: |
@@ -45,3 +71,5 @@ jobs:
            # Replace this with your logic to check if the updated container is ready
             sleep 10
             curl -s http://localhost:8000 || exit 1
+
+            
