@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  app:
+    build: .   
+    ports:
+      - "3000:3000"
+
+  ngrok:
+    image: ngrok/ngrok 
+    entrypoint: 
+      - sh
+      - -c
+      - |
+        ngrok config add-authtoken 1xU9NHpzzugFG4ECm9g7IgVSFFY_5DihFcpCqpu2ZP5KuRLGW
+        ngrok http 3000
+    depends_on:
+      - app
