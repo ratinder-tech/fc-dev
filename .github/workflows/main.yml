@@ -1,0 +1,43 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build & Deploy
+        env:
+            PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+            HOSTNAME: ${{secrets.EC2_HOST}}
+            USER_NAME: ${{secrets.EC2_USERNAME}}
+      
+        run: |
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          echo "Content of PRIVATE_KEY variable: $PRIVATE_KEY"
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+            # Your commands on the remote server here
+          '
+
+      - name: Pull code from main branch
+        run: |
+          cd fc-shopify-app/
+          git pull 
+
+      - name: Build and Run Docker image
+        run: | 
+          docker rmi -f updated-shopify
+          docker build -t updated-shopify .
+          docker stop updated-shopify
+          docker rm updated-shopify
+          docker run -d --name updated-shopify -p 8000:8081 updated-shopify
+
+      - name: Run Docker container
+        run: |
+           # Replace this with your logic to check if the updated container is ready
+            sleep 10
+            curl -s http://localhost:8000 || exit 1
