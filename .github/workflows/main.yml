@@ -25,6 +25,9 @@ jobs:
       - name: Display Current Directory
         run: |
           echo "Current Directory: $(pwd)"
+          cd /home/
+          echo "Current Directory: $(ls)"
+          
       - name: Pull code from main branch
         run: |
           cd /home/ec2-user/fc-shopify-app/
