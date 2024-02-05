@@ -41,7 +41,9 @@ jobs:
             docker rm "$CONTAINER_ID"
           else
             echo "No running container with the name updated-shopify found."
-              
+          fi   
+      
+                    
 
       - name: Build and Run Docker image
         run: | 
