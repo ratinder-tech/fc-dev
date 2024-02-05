@@ -25,6 +25,18 @@ jobs:
       - name: Display Current Directory
         run: |
           echo "Current Directory: $(pwd)"
+          cd ..
+          echo "Current Directory: $(ls)"
+          cd ..
+          echo "Current Directory: $(ls)"
+          cd ..
+          echo "Current Directory: $(ls)"
+          cd ..
+          echo "Current Directory: $(ls)"
+          cd ..
+          echo "Current Directory: $(ls)"
+          cd ..
+          echo "Current Directory: $(ls)"
           cd /home/ec2-user
           echo "Current Directory: $(ls)"
           
