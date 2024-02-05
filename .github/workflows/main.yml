@@ -25,6 +25,7 @@ jobs:
       - name: Display Current Directory
         run: |
           echo "Current Directory: $(pwd)"
+          echo "Current Directory: $(ls)"
           cd ..
           echo "Current Directory: $(ls)"
           cd ..
