@@ -36,8 +36,8 @@ jobs:
         run: | 
           docker rmi -f updated-shopify
           docker build -t updated-shopify .
-          docker stop updated-shopify
-          docker rm updated-shopify
+          docker stop updated-shopify || true
+          docker rm updated-shopify || true
           docker run -d --name updated-shopify -p 8000:8081 updated-shopify
 
       - name: Run Docker container
