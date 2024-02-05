@@ -25,7 +25,7 @@ jobs:
 
       - name: Pull code from main branch
         run: |
-          cd fc-shopify-app/
+          cd /home/ec2-user/fc-shopify-app/
           git pull 
 
       - name: Build and Run Docker image
