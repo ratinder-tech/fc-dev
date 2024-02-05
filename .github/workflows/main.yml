@@ -25,6 +25,7 @@ jobs:
       - name: Display Current Directory
         run: |
           echo "Current Directory: $(pwd)"
+          echo "Current Directory: $(ls)"
            
           
       - name: Pull code from main branch
@@ -32,13 +33,23 @@ jobs:
           # cd /home/ec2-user/fc-shopify-app/
           git pull 
 
+      - name: Stop and Remove Docker Container
+        run: |
+          CONTAINER_ID=$(docker ps -q --filter "name=updated-shopify")
+          if [ -n "$CONTAINER_ID" ]; then
+            docker stop "$CONTAINER_ID"
+            docker rm "$CONTAINER_ID"
+          else
+            echo "No running container with the name updated-shopify found."
+              
+
       - name: Build and Run Docker image
         run: | 
-          docker rmi -f updated-shopify
-          docker build -t updated-shopify .
-          docker stop updated-shopify || true
-          docker rm updated-shopify || true
-          docker run -d --name updated-shopify -p 8000:8081 updated-shopify
+          echo "Image removing"
+          docker rmi -f updated-shopify || true
+          echo "Image REMOVED==="
+          docker build -t updated-shopify . 
+          docker run -d -p 8000:8081 updated-shopify
 
       - name: Run Docker container
         run: |
