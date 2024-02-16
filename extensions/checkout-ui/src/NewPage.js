@@ -67,7 +67,7 @@ function Extension() {
 
 
       const setMetafields = await fetch(
-        `https://boundaries-sitemap-dylan-cord.trycloudflare.com/api/set-order-metafields`,
+        `https://fc-app.vuwork.com/api/set-order-metafields`,
         {
           method: "POST",
           headers: {
