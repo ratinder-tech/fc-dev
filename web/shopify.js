@@ -32,7 +32,6 @@ const billingConfig = {
 //   // This should be replaced with your preferred storage strategy
 //   sessionStorage: new SQLiteSessionStorage(DB_PATH),
 // });
-console.log(process.env,"process.env")
 
 
 

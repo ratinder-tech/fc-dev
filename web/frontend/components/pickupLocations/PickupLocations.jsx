@@ -22,11 +22,11 @@ export function PickupLocations(props) {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        axios.get(`https://fctest-api.fastcourier.com.au/api/wp/merchant_domain/locations/${merchantDomainId}`, { "headers": headers }).then(response => {
+        axios.get(`${process.env.API_ENDPOINT}/api/wp/merchant_domain/locations/${merchantDomainId}`, { "headers": headers }).then(response => {
             setIsLoading(false);
             setPickupLocations(response.data.data);
         }).catch(error => {
@@ -41,12 +41,12 @@ export function PickupLocations(props) {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
         const payload = {};
-        axios.post(`https://fctest-api.fastcourier.com.au/api/wp/merchant_domain/location/delete/${id}`, payload, { "headers": headers }).then(response => {
+        axios.post(`${process.env.API_ENDPOINT}/api/wp/merchant_domain/location/delete/${id}`, payload, { "headers": headers }).then(response => {
             setShowDeleteModal(false);
             getPickupLocations();
         }).catch(error => {

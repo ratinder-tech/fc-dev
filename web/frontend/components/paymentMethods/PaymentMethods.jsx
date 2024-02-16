@@ -33,25 +33,54 @@ export function PaymentMethods(props) {
     // console.log("carriers", carriers);
 
     const savePaymentMethod = async () => {
-        // props.setActiveNavItem("pickupLocations");
+        props.setActiveNavItem("pickupLocations");
 
-        try {
-            const response = await fetch('/api/fulfill-hold', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                // body: JSON.stringify({
-                //     package_name: "Fast Courier",
-                // }),
-            });
-            const data = await response.json();
-            console.log("carrier", data);
-        } catch (err) {
-            setIsLoading(false);
-            console.log(err);
+        // try {
+        //     const response = await fetch('/api/carrier-service/update', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify({
+        //             package_name: "Fast Courier",
+        //         }),
+        //     });
+        //     const data = await response.json();
+        //     console.log("carrier", data);
+        // } catch (err) {
+        //     setIsLoading(false);
+        //     console.log(err);
+        // }
+
+    }
+
+    const addPaymentMethod = () => {
+        const accessToken = localStorage.getItem("accessToken");
+        setIsLoading(true);
+        const headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "request-type": process.env.REQUEST_TYPE,
+            "version": "3.1.1",
+            "Authorization": "Bearer " + accessToken
         }
 
+        const payload = {
+            "numer": cardNumber,
+            "exp_month": expiryMonth,
+            "exp_year": expiryYear,
+            "cvc": cvc,
+            "email": email,
+            "name": name,
+            "company": companyName,
+        }
+        axios.post(`${process.env.API_ENDPOINT}/api/wp/payment_method`, payload, { "headers": headers }).then(response => {
+            setPaymentMethods(response.data.data);
+            setIsLoading(false);
+        }).catch(error => {
+            setIsLoading(false);
+            console.log(error);
+        })
     }
 
     const getPaymentMethods = () => {
@@ -60,11 +89,11 @@ export function PaymentMethods(props) {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        axios.get('https://fctest-api.fastcourier.com.au/api/wp/payment_method', { "headers": headers }).then(response => {
+        axios.get(`${process.env.API_ENDPOINT}/api/wp/payment_method`, { "headers": headers }).then(response => {
             setPaymentMethods(response.data.data);
             setIsLoading(false);
         }).catch(error => {
@@ -164,7 +193,7 @@ export function PaymentMethods(props) {
                     </div>
                 </div>
                 <div className="submit">
-                    <button className="submit-btn" onClick={() => savePaymentMethod()}>
+                    <button className="submit-btn" onClick={() => addPaymentMethod()}>
                         Add New Card
                     </button>
                 </div>
@@ -177,12 +206,14 @@ export function PaymentMethods(props) {
                         <th>Expiry</th>
                         <th>Actions</th>
                     </tr>
-                    <tr className='products-row'>
-                        <td width="25%"></td>
-                        <td width="25%"></td>
-                        <td width="25%"></td>
-                        <td width="25%"></td>
-                    </tr>
+                    {paymentMethods.map((method, i) => {
+                        return <tr className='products-row' style={{ background: i % 2 != 0 ? "#F5F8FA" : "#FFFFFF" }}>
+                            <td width="25%">{method?.brand}</td>
+                            <td width="25%">{"XXXX XXXX XXXX " + method?.last4}</td>
+                            <td width="25%">{method?.exp_month + " / " + method?.exp_year}</td>
+                            <td width="25%"></td>
+                        </tr>
+                    })}
                 </table>
             </div>
             <div className="payment-heading">

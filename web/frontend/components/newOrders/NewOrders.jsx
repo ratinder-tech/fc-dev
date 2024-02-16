@@ -60,11 +60,11 @@ export function NewOrders(props) {
     //     const headers = {
     //         "Accept": "application/json",
     //         "Content-Type": "application/json",
-    //         "request-type": "shopify_development",
+    //         "request-type": process.env.REQUEST_TYPE,
     //         "version": "3.1.1",
     //         "Authorization": "Bearer " + accessToken
     //     }
-    //     axios.get('https://fctest-api.fastcourier.com.au/api/wp/public-holidays', { "headers": headers }).then(response => {
+    //     axios.get(`${process.env.API_ENDPOINT}/api/wp/public-holidays`, { "headers": headers }).then(response => {
     //         console.log("response", response);
     //     }).catch(error => {
     //         console.log(error);
@@ -174,14 +174,6 @@ export function NewOrders(props) {
               );
               return { ...item1, ...matchingItem2 };
             });
- 
-
-
-
-
-
-
-
             setOrders(getOrders);
             setallNewOrders(getOrders);
             setIsLoading(false);
@@ -286,7 +278,7 @@ export function NewOrders(props) {
     //     const headers = {
     //         "Accept": "application/json",
     //         "Content-Type": "application/json",
-    //         "request-type": "shopify_development",
+    //         "request-type": process.env.REQUEST_TYPE,
     //         "version": "3.1.1",
     //         "Authorization": "Bearer " + accessToken
     //     }
@@ -317,7 +309,7 @@ export function NewOrders(props) {
     //         "isReprocessOrders": false,
     //         "request_type": "wp"
     //     }
-    //     axios.post('https://fctest-api.fastcourier.com.au/api/wp/bulk_order_booking', payload, {"headers": headers }).then(response => {
+    //     axios.post(`${process.env.API_ENDPOINT}/api/wp/bulk_order_booking`, payload, {"headers": headers }).then(response => {
     //         console.log("merchantDetials", response.data.data);
     //         setIsLoading(false);
     //     }).catch(error => {

@@ -35,6 +35,7 @@ export function ProductMapping() {
     const [dimensionCount, setDimensionCount] = useState(1);
     const [selectedTag, setSelectedTag] = useState("all");
     const [selectedCategory, setSelectedCategory] = useState("all");
+    const [selectedProductType, setSelectedProductType] = useState("all");
     const [productData, setProductData] = useState([]);
     const [shippingPackageName, setShippingPackageName] = useState("");
     const [shippingPackageType, setShippingPackageType] = useState("");
@@ -211,11 +212,11 @@ export function ProductMapping() {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        axios.get(`https://fctest-api.fastcourier.com.au/api/wp/merchant_domain/locations/${merchantDomainId}`, { "headers": headers }).then(response => {
+        axios.get(`${process.env.API_ENDPOINT}/api/wp/merchant_domain/locations/${merchantDomainId}`, { "headers": headers }).then(response => {
             setIsLoading(false);
             setLocations(response.data.data);
         }).catch(error => {
@@ -231,11 +232,11 @@ export function ProductMapping() {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        axios.get(`https://fctest-api.fastcourier.com.au/api/wp/merchant_location_tags/${merchantDomainId}`, { "headers": headers }).then(response => {
+        axios.get(`${process.env.API_ENDPOINT}/api/wp/merchant_location_tags/${merchantDomainId}`, { "headers": headers }).then(response => {
             setIsLoading(false);
             setMerchantTags(response.data.data);
         }).catch(error => {
@@ -251,11 +252,11 @@ export function ProductMapping() {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        axios.get(`https://fctest-api.fastcourier.com.au/api/wp/package_types`, { "headers": headers }).then(response => {
+        axios.get(`${process.env.API_ENDPOINT}/api/wp/package_types`, { "headers": headers }).then(response => {
             setIsLoading(false);
             setPackageTypes(response.data.data);
         }).catch(error => {
@@ -394,6 +395,29 @@ export function ProductMapping() {
         return location != undefined ? location.node.value : null;
     }
 
+    const handleFreeShippingChange = async (e, id) => {
+        const checked = e.target.checked;
+        try {
+            setIsLoading(true);
+            await fetch('/api/free-shipping', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    "orderId": id,
+                    "isFreeShipping": checked,
+                }),
+            });
+            // const data = result.json();
+            // console.log("free shipping", data);
+            setIsLoading(false);
+        } catch (err) {
+            setIsLoading(false);
+            console.log(err);
+        }
+    }
+
     return (
         <div className="product-mapping">
             {isLoading && <Loader />}
@@ -430,6 +454,19 @@ export function ProductMapping() {
                                 {uniqueTagsArray.map((element, i) => {
                                     return <option value={element}>{element}</option>
                                 })}
+                            </select>
+                        </div>
+                    </div>
+                    <div className="input-container">
+                        <div className="input-lebel">
+                            <span> Product Type&nbsp;</span>
+                        </div>
+                        <div className="input-field">
+                            <select className="input-field-text" type="text" value={selectedProductType} onChange={(e) => setSelectedProductType(e.target.value)}>
+                                <option value="all">All</option>
+                                <option value="simple">Simple</option>
+                                <option value="virtual">Virtual</option>
+                                <option value="variable">Variable</option>
                             </select>
                         </div>
                     </div>
@@ -761,6 +798,8 @@ export function ProductMapping() {
                         <th>L x W x H</th>
                         <th>Weight</th>
                         <th>Is Individual</th>
+                        <th>Eligible For Shipping</th>
+                        <th>Free Shipping</th>
                         <th>Location/Tag</th>
                     </tr>
                     {getProducts?.length > 0 && getProducts.map((element, i) => {
@@ -779,6 +818,14 @@ export function ProductMapping() {
                             }</td>
                             <td width="10%">{getProductMetaField(element.node?.metafields?.edges, "weight") ?? "0kg"}</td>
                             <td width="10%">{getProductMetaField(element.node?.metafields?.edges, "is_individaul") ?? "Yes"}</td>
+                            <td width="10%"><label className="switch">
+                                <input type="checkbox" />
+                                <span className="slider round"></span>
+                            </label></td>
+                            <td width="10%"><label className="switch">
+                                <input type="checkbox" onChange={(e) => handleFreeShippingChange(e, element.id)} />
+                                <span className="slider round"></span>
+                            </label></td>
                             <td width="10%">{getProductMetaField(element.node?.metafields?.edges, "location")}</td>
                         </tr>
                     })}

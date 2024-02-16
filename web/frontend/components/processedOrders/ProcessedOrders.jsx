@@ -173,7 +173,7 @@ export function ProcessedOrders() {
                     })} */}
 
                     {getOrders?.length > 0 && getOrders.map((element, i) => {
-                        if (getMetaValue(element.node?.metafields?.edges, "fc_order_status") == "Booked for collection") {
+                        if (getMetaValue(element.node?.metafields?.edges, "fc_order_status") == "Booked for collection" || getMetaValue(element.node?.metafields?.edges, "fc_order_status") == "Processed") {
                             console.log("i", i);
                             return <tr key={i} className='products-row' style={{ background: i % 2 == 0 ? "#F5F8FA" : "#FFFFFF" }}>
                                 <td><input type="checkbox" value={element.id} onChange={(e) => selectOrder(e)} checked={selectedOrders.includes(element.id.toString())} /></td>
@@ -181,7 +181,7 @@ export function ProcessedOrders() {
                                 {/* <td width="8%">{"GROREYQJYM"}</td> */}
                                 <td width="7%">{new Date(element.created_at).toLocaleDateString('en-GB')}</td>
                                 <td width="15%">{element?.shipping_address?.first_name + " " + element?.shipping_address?.last_name}</td>
-                                <td width="8%">{"Booked for collection"}</td>
+                                <td width="8%">{getMetaValue(element.node?.metafields?.edges, "fc_order_status")}</td>
                                 <td width={"8%"}>{element.subtotal_price}</td>
                                 <td width="8%">{"1"}</td>
                                 <td width="15%">{"$14.11(Aramax Express)"}</td>

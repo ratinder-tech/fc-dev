@@ -54,11 +54,11 @@ export function AddLocation(props) {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        axios.get('https://fctest-api.fastcourier.com.au/api/wp/suburbs', { "headers": headers }).then(response => {
+        axios.get(`${process.env.API_ENDPOINT}/api/wp/suburbs`, { "headers": headers }).then(response => {
             setSuburbData(response.data.data)
             var suburbList = [];
             response.data.data.forEach(element => {
@@ -100,12 +100,12 @@ export function AddLocation(props) {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
 
-        const url = props.editLocation ? `https://fctest-api.fastcourier.com.au/api/wp/merchant_domain/location/edit/${props.editLocation.id}` : "https://fctest-api.fastcourier.com.au/api/wp/merchant_domain/locations/add";
+        const url = props.editLocation ? `${process.env.API_ENDPOINT}/api/wp/merchant_domain/location/edit/${props.editLocation.id}` : `${process.env.API_ENDPOINT}/api/wp/merchant_domain/locations/add`;
         axios.post(url, payload, { "headers": headers }).then(response => {
             props.getPickupLocations();
             props.setShowModal(false);
@@ -187,11 +187,11 @@ export function AddLocation(props) {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        axios.get(`https://fctest-api.fastcourier.com.au/api/wp/merchant_location_tags/${merchantDomainId}`, { "headers": headers }).then(response => {
+        axios.get(`${process.env.API_ENDPOINT}/api/wp/merchant_location_tags/${merchantDomainId}`, { "headers": headers }).then(response => {
             setIsLoading(false);
             // setPickupLocations(response.data.data);
             setMerchantTags(response.data.data);

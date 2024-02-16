@@ -33,6 +33,7 @@ export function MerchantBillingDetails(props) {
     const [activeCouriers, setActiveCouriers] = useState([]);
     const [shoppingPreference, setShoppingPreference] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [carrierServices, setCarrierServices] = useState(null);
 
     const fetch = useAuthenticatedFetch();
 
@@ -42,11 +43,11 @@ export function MerchantBillingDetails(props) {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        await axios.get('https://fctest-api.fastcourier.com.au/api/wp/get_merchant', { "headers": headers }).then(response => {
+        await axios.get(`${process.env.API_ENDPOINT}/api/wp/get_merchant`, { "headers": headers }).then(response => {
             console.log("merchantDetials", response.data.data);
             // saveMerchant(response.data.data);
             getMerchant();
@@ -87,8 +88,11 @@ export function MerchantBillingDetails(props) {
             }
         });
         const data = await response.json();
-        console.log("carrier", data);
+        console.log("carrier", data.data);
+        setCarrierServices(data.data);
     }
+
+
 
     function setMerchantDetails(merchant) {
         setBillingFirstName(merchant.billing_first_name);
@@ -116,11 +120,11 @@ export function MerchantBillingDetails(props) {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        axios.get('https://fctest-api.fastcourier.com.au/api/wp/suburbs', { "headers": headers }).then(response => {
+        axios.get(`${process.env.API_ENDPOINT}/api/wp/suburbs`, { "headers": headers }).then(response => {
             var suburbData = [];
             response.data.data.forEach(element => {
                 var suburb = { "value": element.name + ', ' + element.postcode + " (" + element.state + ")", label: element.name + ', ' + element.postcode + "(" + element.state + ")" };
@@ -138,11 +142,11 @@ export function MerchantBillingDetails(props) {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        axios.get('https://fctest-api.fastcourier.com.au/api/wp/couriers', { "headers": headers }).then(response => {
+        axios.get(`${process.env.API_ENDPOINT}/api/wp/couriers`, { "headers": headers }).then(response => {
             setCouriers(response.data.data);
             var courierIds = [];
             courierIds = response.data.data.map((element) => element.id.toString());
@@ -190,17 +194,48 @@ export function MerchantBillingDetails(props) {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        axios.post('https://fctest-api.fastcourier.com.au/api/wp/activate', payload, { "headers": headers }).then(response => {
+        axios.post(`${process.env.API_ENDPOINT}/api/wp/activate`, payload, { "headers": headers }).then(response => {
             props.setActiveNavItem("paymentMethods");
+            const carrierService = getCarrierSerice(carrierServices);
+            if (carrierService == null) {
+                console.log("carrier service created");
+                createCarrierService();
+            }
             setIsLoading(false);
         }).catch(error => {
             console.log(error);
             setIsLoading(false);
         })
+    }
+
+    const getCarrierSerice = (data) => {
+        const item = data.find(obj => obj.name === "Fast Courier");
+        return item ?? null;
+    };
+
+    const createCarrierService = async () => {
+        try {
+            setIsLoading(true);
+            const response = await fetch('/api/carrier-service/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    package_name: "Fast Courier",
+                }),
+            });
+            const data = await response.json();
+            console.log("carrier", data);
+            setIsLoading(false);
+        } catch (err) {
+            setIsLoading(false);
+            console.log(err);
+        }
     }
 
     const handleCourierChange = (e) => {
@@ -418,10 +453,11 @@ export function MerchantBillingDetails(props) {
                 </div>
             </div> */}
             <div className="input-checkbox">
-                <input type="checkbox" name="isDropOffTailLift" id="isDropOffTailLift" onChange={(e) => setIsDropOffTailLift(e.target.checked)} />
+                <input type="checkbox" name="isDropOffTailLift" id="isDropOffTailLift" value={isDropOffTailLift} onChange={(e) => setIsDropOffTailLift(e.target.checked)} checked={isDropOffTailLift} />
                 <label htmlFor="isDropOffTailLift">&nbsp;Default tail lift on delivery</label>
+                {console.log(isDropOffTailLift, "isDropOffTailLift")}
                 {
-                    isDropOffTailLift &&
+                    isDropOffTailLift == true &&
                     <span className="conditional-price">
                         {"> It will only apply for packages over "}<input type="type" name="tailLiftValue" className="input-field-text1" value={tailLiftValue} onChange={(e) => setTailLiftValue(e.target.value)} /> {" Kgs."}
                     </span>

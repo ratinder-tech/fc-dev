@@ -3,7 +3,7 @@
 
 # The version of APIs your extension will receive. Learn more:
 # https://shopify.dev/docs/api/usage/versioning
-api_version = "unstable"
+api_version = "2023-10"
 
 [[extensions]]
 type = "ui_extension"
@@ -19,16 +19,8 @@ module = "./src/Checkout.jsx"
 target = "purchase.checkout.contact.render-after"
 
 [[extensions.targeting]]
-module = "./src/Shipping.jsx"
-target = "purchase.checkout.reductions.render-after"
-
-[[extensions.targeting]]
 module = "./src/NewPage.js"
 target = "purchase.thank-you.header.render-after"
-
-[[extensions.targeting]]
-module = "./src/ThankYouPage.jsx"
-target = "customer-account.order-status.cart-line-item.render-after"
 
 [extensions.capabilities]
 # Gives your extension access to directly query Shopify’s storefront API.
