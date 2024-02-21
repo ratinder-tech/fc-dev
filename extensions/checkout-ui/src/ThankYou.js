@@ -32,6 +32,19 @@ function Extension() {
     return item ? item.code : null;
   }
 
+  const getCarrier = (data) => {
+    const item = data.find(obj => obj.source === "Fast Courier");
+    const title = item ? item.title : null;
+
+    const startIndex = title.indexOf('[');
+    const endIndex = title.indexOf(']');
+
+    // Extract the substring between '[' and ']'
+    const carrierName = title.substring(startIndex + 1, endIndex);
+
+    return carrierName;
+  }
+
   getOrderDetails = async () => {
     const token = await sessionToken.get();
 
@@ -39,7 +52,7 @@ function Extension() {
 
 
     const result = await fetch(
-      `https://boundaries-sitemap-dylan-cord.trycloudflare.com/api/get-order/${orderId}`,
+      `https://fc-app.vuwork.com/api/get-order/${orderId}`,
       {
         method: "GET",
         headers: {
@@ -65,6 +78,8 @@ function Extension() {
       const quoteId = valuesArray[0].replace(/"/g, '');
       const orderHashId = valuesArray[1].replace(/"/g, '');
 
+      const carrierName = getCarrier(orderDetails.shipping_lines);
+      console.log("carrierName", carrierName);
 
       const setMetafields = await fetch(
         `https://fc-app.vuwork.com/api/set-order-metafields`,
@@ -78,14 +93,28 @@ function Extension() {
           body: JSON.stringify({
             quoteId: quoteId,
             orderHashId: orderHashId,
-            orderId: orderId
+            orderId: orderId,
+            carrierName: carrierName
           }),
         },
       );
+    } else {
+      const result = await fetch(
+        `https://fc-app.vuwork.com/api/process-order/${orderId}`,
+        {
+          method: "GET",
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Content-Type": 'application/json',
+            "Authorization": `Bearer ${token}`,
+          },
+        },
+      );
+
+      const orderDetails = await result.json();
+      console.log("orderDetails", orderDetails);
     }
 
-
-    console.log("setMetafields===", setMetafields);
 
   }
 
