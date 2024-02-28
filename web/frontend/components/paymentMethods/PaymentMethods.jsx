@@ -33,24 +33,24 @@ export function PaymentMethods(props) {
     // console.log("carriers", carriers);
 
     const savePaymentMethod = async () => {
-        // props.setActiveNavItem("pickupLocations");
+        props.setActiveNavItem("pickupLocations");
 
-        try {
-            const response = await fetch('/api/carrier-service/update', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    package_name: "Fast Courier",
-                }),
-            });
-            const data = await response.json();
-            console.log("carrier", data);
-        } catch (err) {
-            setIsLoading(false);
-            console.log(err);
-        }
+        // try {
+        //     const response = await fetch('/api/carrier-service/update', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify({
+        //             package_name: "Fast Courier",
+        //         }),
+        //     });
+        //     const data = await response.json();
+        //     console.log("carrier", data);
+        // } catch (err) {
+        //     setIsLoading(false);
+        //     console.log(err);
+        // }
 
     }
 
