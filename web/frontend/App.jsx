@@ -19,6 +19,7 @@ import { OrderDetails } from "./components/orderDetails/OrderDetails";
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userDetails, setUserDetails] = useState(null);
+  const [isStaging, setIsStaging] = useState(true);
   library.add(fas, fab);
 
   useEffect(() => {
@@ -63,7 +64,7 @@ export default function App() {
               <Routes>
                 <Route index element={<Navigate to="/login" />} />
                 <Route path="/login" element={<Login setUserDetails={setUserDetails} />} />
-                <Route path="/homepage" element={<HomePage userDetails={userDetails} />} />
+                <Route path="/homepage" element={<HomePage userDetails={userDetails} isStaging={isStaging} />} />
                 <Route path="/orderDetails" element={<OrderDetails />} />
                 <Route path="/signup" element={<Signup setUserDetails={setUserDetails} />} />
                 <Route path="/forgotPassword" element={<ForgotPassword />} />

@@ -91,12 +91,14 @@ export function PickupLocations(props) {
                             <td>{element.phone}</td>
                             <td>{element.email}</td>
                             <td>{element.suburb}, {element.postcode}, {element.state}</td>
-                            <td>{element.tag}</td>
+                            <td>{element.tag == "[]" ? "" : element.tag}</td>
                             <td>{element.free_shipping_postcodes}</td>
                             <td>{element.is_default == 1 ? "Yes" : "No"}</td>
                             <td className='location-actions'>
                                 <FontAwesomeIcon icon="fa-solid fa-pen-to-square" size='2xs' onClick={() => setShowEditModal(true)} />
-                                <FontAwesomeIcon icon="fa-solid fa-trash-can" size='2xs' onClick={() => setShowDeleteModal(true)} />
+                                {element.is_default != 1 &&
+                                    <FontAwesomeIcon icon="fa-solid fa-trash-can" size='2xs' onClick={() => setShowDeleteModal(true)} />
+                                }
                                 <Modal showModal={showEditModal} width="60%" >
                                     <AddLocation setShowModal={setShowEditModal} getPickupLocations={getPickupLocations} editLocation={element} {...props} />
                                 </Modal>

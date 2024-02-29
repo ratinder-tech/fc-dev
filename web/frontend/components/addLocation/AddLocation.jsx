@@ -4,6 +4,7 @@ import CreatableSelect from 'react-select/creatable';
 import "./style.css";
 import { useState, useEffect } from "react";
 import { Loader } from '../loader';
+import { ErrorModal } from "../errorModal";
 
 export function AddLocation(props) {
     const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +20,8 @@ export function AddLocation(props) {
     const [selectedState, setSelectedState] = useState("");
     const [selectedPostcode, setSelectedPostcode] = useState("");
     const [selectedSuburb, setSelectedSuburb] = useState("");
-    const [tailLift, setTailLift] = useState("");
+    const [tailLift, setTailLift] = useState("0");
+    const [isDefaultLocation, setIsDefaultLocation] = useState("0");
     const [suburbs, setSuburbs] = useState([]);
     const [tags, setTags] = useState([]);
     const [merchantTags, setMerchantTags] = useState([]);
@@ -29,6 +31,8 @@ export function AddLocation(props) {
     const [longitude, setLongitude] = useState("");
     const [latitude, setLatitude] = useState("");
     const [suburbData, setSuburbData] = useState([]);
+    const [openErrorModal, setOpenErrorModal] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
     const buildingTypes = [{
         "value": "residential", "label": "Residential"
@@ -72,48 +76,88 @@ export function AddLocation(props) {
         })
     }
 
-    const addLocation = () => {
-        setIsLoading(true);
-        const accessToken = localStorage.getItem("accessToken");
-        const merchantDomainId = localStorage.getItem("merchantDomainId");
-        const payload = {
-            "location_name": locationName,
-            "first_name": firstName,
-            "last_name": lastName,
-            "email": email,
-            "phone": phoneNumber,
-            "address1": address1,
-            "address2": address2,
-            "building_type": buildingType,
-            "time_window": timeWindow,
-            "suburb": selectedSuburb,
-            "state": selectedState,
-            "postcode": selectedPostcode,
-            "is_default": "1",
-            "tag": tags,
-            "free_shipping_postcodes": null,
-            "merchant_domain_id": merchantDomainId,
-            "tail_lift": tailLift,
-            "longitude": "144.956776",
-            "latitude": "-37.817403",
-        }
-        const headers = {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "request-type": process.env.REQUEST_TYPE,
-            "version": "3.1.1",
-            "Authorization": "Bearer " + accessToken
-        }
+    function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const isValid = emailRegex.test(email);
+        return isValid;
+    }
 
-        const url = props.editLocation ? `${process.env.API_ENDPOINT}/api/wp/merchant_domain/location/edit/${props.editLocation.id}` : `${process.env.API_ENDPOINT}/api/wp/merchant_domain/locations/add`;
-        axios.post(url, payload, { "headers": headers }).then(response => {
-            props.getPickupLocations();
-            props.setShowModal(false);
-            setIsLoading(false);
-        }).catch(error => {
-            setIsLoading(false);
-            console.log(error);
-        })
+    function validations() {
+        if (locationName == "") {
+            setErrorMessage("Please enter location name");
+            return false;
+        }
+        if (firstName == "") {
+            setErrorMessage("Please enter first name");
+            return false;
+        }
+        if (email == "" || !isValidEmail(email)) {
+            setErrorMessage("Please enter valid email");
+            return false;
+        }
+        if (phoneNumber == "") {
+            setErrorMessage("Please enter phone number");
+            return false;
+        }
+        if (address1 == "") {
+            setErrorMessage("Please enter address1");
+            return false;
+        }
+        return true;
+    }
+
+    const addLocation = () => {
+        try {
+            const isValid = validations();
+            if (isValid) {
+                setIsLoading(true);
+                const accessToken = localStorage.getItem("accessToken");
+                const merchantDomainId = localStorage.getItem("merchantDomainId");
+                const payload = {
+                    "location_name": locationName,
+                    "first_name": firstName,
+                    "last_name": lastName,
+                    "email": email,
+                    "phone": phoneNumber,
+                    "address1": address1,
+                    "address2": address2,
+                    "building_type": buildingType,
+                    "time_window": timeWindow,
+                    "suburb": selectedSuburb,
+                    "state": selectedState,
+                    "postcode": selectedPostcode,
+                    "is_default": isDefaultLocation,
+                    "tag": tags,
+                    "free_shipping_postcodes": null,
+                    "merchant_domain_id": merchantDomainId,
+                    "tail_lift": tailLift,
+                    "longitude": "144.956776",
+                    "latitude": "-37.817403",
+                }
+
+                const headers = {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                    "request-type": process.env.REQUEST_TYPE,
+                    "version": "3.1.1",
+                    "Authorization": "Bearer " + accessToken
+                }
+
+                const url = props.editLocation ? `${process.env.API_ENDPOINT}/api/wp/merchant_domain/location/edit/${props.editLocation.id}` : `${process.env.API_ENDPOINT}/api/wp/merchant_domain/locations/add`;
+                axios.post(url, payload, { "headers": headers }).then(response => {
+                    props.getPickupLocations();
+                    props.setShowModal(false);
+                    setIsLoading(false);
+                }).catch(error => {
+                    setIsLoading(false);
+                    console.log(error);
+                })
+            } else {
+                setOpenErrorModal(true);
+            }
+        } catch (error) {
+
+        }
     }
 
     const setEditLocationData = (location) => {
@@ -130,6 +174,7 @@ export function AddLocation(props) {
         setSelectedPostcode(location.postcode);
         setSelectedSuburb(location.suburb);
         setTailLift(location.tail_lift);
+        setIsDefaultLocation(location.is_default);
         // setTags(location.tags);
         // setFreeShippingPoscodes(location.free_shipping_postcodes);
         setLongitude(location.longitude);
@@ -168,16 +213,39 @@ export function AddLocation(props) {
         return defaultValue;
     }
 
-    const getDefaultSuburbValue = () => {
-        var defaultValue = props.editLocation ?
-            { "value": props.editLocation.suburb + ', ' + props.editLocation.postcode + " (" + props.editLocation.state + ")", label: props.editLocation.suburb + ', ' + props.editLocation.postcode + "(" + props.editLocation.state + ")" }
-            : null;
+    const getDefaultLocation = () => {
+        var defaultValue = props.editLocation ? {
+            "value": props.editLocation.is_default, "label": props.editLocation.is_default == 0 ? "No" : "Yes"
+        } : {
+            "value": "0", "label": "No"
+        }
 
         return defaultValue;
     }
 
+    const getDefaultSuburbValue = () => {
+        var defaultValue = props.editLocation ?
+            { "value": props.editLocation.suburb + ', ' + props.editLocation.postcode + " (" + props.editLocation.state + ")", label: props.editLocation.suburb + ', ' + props.editLocation.postcode + "(" + props.editLocation.state + ")" }
+            : null;
+        return defaultValue;
+    }
+
     const getDefaultTags = () => {
-        var tagsValue = merchantTags.find((element) => element.id = props.editLocation.tags);
+        if (props?.editLocation) {
+            var tagValues = merchantTags.filter((element) => props?.editLocation?.tag?.includes(element.id));
+            var selectedTags = []
+
+            console.log("tagValues", tagValues);
+            tagValues.map((val, key) => {
+                const tag = { "value": val.id, "label": val.name };
+
+                console.log("tag", tag);
+                selectedTags.push(tag);
+            })
+            return selectedTags;
+        } else {
+            return null
+        }
     }
 
     const getMerchantTags = () => {
@@ -235,6 +303,7 @@ export function AddLocation(props) {
         getSuburbs();
         getMerchantTags();
         // getDefaultTags();
+        console.log("editLocation=", props.editLocation);
         if (props.editLocation) {
             setEditLocationData(props.editLocation);
         }
@@ -242,6 +311,7 @@ export function AddLocation(props) {
     return (
         <div className="add-location-modal">
             {isLoading && <Loader />}
+            <ErrorModal showModal={openErrorModal} message={errorMessage} onConfirm={() => setOpenErrorModal(false)} />
             <div className="modal-header">
                 <div className="header-text">
                     New Location
@@ -345,10 +415,9 @@ export function AddLocation(props) {
                         <div className="input-lebel1">
                             <span> Default&nbsp;</span><span style={{ color: "red" }}> *</span>
                         </div>
-                        <div className="input-field">
-                            <input className="input-field-text1" type="text" disabled value={"Yes"} />
-                        </div>
+                        <Select options={tailLiftList} onChange={(e) => setIsDefaultLocation(e.value)} defaultValue={getDefaultLocation()} />
                     </div>
+
                     <div className="input-container1">
                         <div className="input-lebel1">
                             <span> Tag&nbsp;</span>
@@ -357,8 +426,7 @@ export function AddLocation(props) {
                             isClearable
                             isMulti
                             options={tagOptions}
-                            value={tagOptions}
-                            // defaultValue={getDefaultTags()}
+                            value={getDefaultTags()}
                             onCreateOption={(value) => handleTagCreate(value)}
                             onChange={(value) => handleTagChange(value)}
                         />

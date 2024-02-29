@@ -450,21 +450,21 @@ app.post("/api/carrier-service/create", async (_req, res) => {
 });
 
 
-app.post("/api/carrier-service/update", async (_req, res) => {
-  try {
-    const carrier_service = new shopify.api.rest.CarrierService({ session: res.locals.shopify.session });
-    carrier_service.id = 66713190619;
-    carrier_service.name = "Fast Courier";
-    carrier_service.callback_url = "https://complications-complexity-postcards-definition.trycloudflare.com/api/shipping-rates";
-    await carrier_service.save({
-      update: true,
-    });
-    res.status(200).send(carrier_service);
-  } catch (error) {
-    console.log("carrier-update=", error);
-  }
+// app.post("/api/carrier-service/update", async (_req, res) => {
+//   try {
+//     const carrier_service = new shopify.api.rest.CarrierService({ session: res.locals.shopify.session });
+//     carrier_service.id = 66713190619;
+//     carrier_service.name = "Fast Courier";
+//     carrier_service.callback_url = "https://complications-complexity-postcards-definition.trycloudflare.com/api/shipping-rates";
+//     await carrier_service.save({
+//       update: true,
+//     });
+//     res.status(200).send(carrier_service);
+//   } catch (error) {
+//     console.log("carrier-update=", error);
+//   }
 
-});
+// });
 
 app.post("/api/carrier-service/delete", async (_req, res) => {
   try {

@@ -3,6 +3,7 @@ import axios from 'axios';
 import Select from 'react-select';
 import "./style.css";
 import { Loader } from "../loader";
+import { ErrorModal } from "../errorModal";
 import { useAppQuery, useAuthenticatedFetch } from "../../hooks";
 
 export function MerchantBillingDetails(props) {
@@ -27,13 +28,16 @@ export function MerchantBillingDetails(props) {
     const [processAfterMinutes, setProcessAfterMinutes] = useState(60);
     const [processAfterDays, setProcessAfterDays] = useState(0);
     const [isDropOffTailLift, setIsDropOffTailLift] = useState(false);
-    const [tailLiftValue, setTailLiftValue] = useState("");
+    const [tailLiftValue, setTailLiftValue] = useState(30);
     const [suburbs, setSuburbs] = useState([]);
+    const [defaultSuburb, setDefaultSuburb] = useState(null);
     const [couriers, setCouriers] = useState([]);
     const [activeCouriers, setActiveCouriers] = useState([]);
     const [shoppingPreference, setShoppingPreference] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [carrierServices, setCarrierServices] = useState(null);
+    const [openErrorModal, setOpenErrorModal] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
     const fetch = useAuthenticatedFetch();
 
@@ -51,7 +55,9 @@ export function MerchantBillingDetails(props) {
             console.log("merchantDetials", response.data.data);
             // saveMerchant(response.data.data);
             getMerchant();
+            setDefaultSuburb({ "value": response.data.data.billing_suburb + ', ' + response.data.data.billing_postcode + " (" + response.data.data.billing_state + ")", label: response.data.data.billing_suburb + ', ' + response.data.data.billing_postcode + "(" + response.data.data.billing_state + ")" })
             setMerchantDetails(response.data.data);
+            props.setMerchantDetails(response.data.data);
             setIsLoading(false);
         }).catch(error => {
             console.log(error);
@@ -67,7 +73,6 @@ export function MerchantBillingDetails(props) {
             },
             body: JSON.stringify(merchantDetails),
         });
-        console.log(response);
     }
 
     const getMerchant = async () => {
@@ -77,7 +82,6 @@ export function MerchantBillingDetails(props) {
                 'Content-Type': 'application/json',
             }
         });
-        console.log(response);
     }
 
     const getCarriers = async () => {
@@ -113,6 +117,9 @@ export function MerchantBillingDetails(props) {
         setConditionalValue(merchant.conditional_price);
         setInsuranceAmount(merchant.insurance_amount);
         setIsDropOffTailLift(merchant.is_drop_off_tail_lift);
+
+        const tailLiftWeight = localStorage.getItem("tailLiftValue");
+        setTailLiftValue(tailLiftWeight);
     }
 
     const getSuburbs = () => {
@@ -156,60 +163,103 @@ export function MerchantBillingDetails(props) {
         })
     }
 
-    const activateMerchant = () => {
-        setIsLoading(true);
-        const accessToken = localStorage.getItem("accessToken");
-        const merchantDomainId = localStorage.getItem("merchantDomainId");
-        const payload = {
-            "id": merchantDomainId,
-            "billingFirstName": billingFirstName,
-            "billingLastName": billingLastName,
-            "billingCompanyName": billingCompanyName,
-            "billingPhone": billingPhone,
-            "billingEmail": billingEmail,
-            "abn": billingAbn,
-            "packageType": "box",
-            "billingAddress1": billingAddress1,
-            "billingAddress2": billingAddress2,
-            "billingSuburb": billingSuburb,
-            "billingState": billingState,
-            "billingPostcode": billingPostcode,
-            "conditionalPrice": conditionalValue,
-            "courierPreferences": activeCouriers,
-            "bookingPreference": bookingPreference,
-            "isInsurancePaidByCustomer": isInsurancePaidByCustomer ? 1 : 0,
-            "fallbackAmount": fallbackAmount,
-            "insuranceType": insuranceType,
-            "insuranceAmount": insuranceAmount,
-            "isDropOffTailLift": isDropOffTailLift,
-            "tailLiftValue": tailLiftValue,
-            "isAuthorityToLeave": "0",
-            "processAfterMinutes": processAfterMinutes,
-            "processAfterDays": processAfterDays,
-            "automaticOrderProcess": automaticOrderProcess,
-            "shoppingPreference": "show_shipping_price_with_carrier_name",
-            "action": "post_activate_mechant",
-            "paymentMethod": "pm_1O9jNICodfiDzZhka9lcNse4",
+    const validations = () => {
+        if (billingFirstName == "") {
+            setErrorMessage("Please enter first name.");
+            return false;
         }
-        const headers = {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "request-type": process.env.REQUEST_TYPE,
-            "version": "3.1.1",
-            "Authorization": "Bearer " + accessToken
+        if (billingLastName == "") {
+            setErrorMessage("Please enter last name.");
+            return false;
         }
-        axios.post(`${process.env.API_ENDPOINT}/api/wp/activate`, payload, { "headers": headers }).then(response => {
-            props.setActiveNavItem("paymentMethods");
-            const carrierService = getCarrierSerice(carrierServices);
-            if (carrierService == null) {
-                console.log("carrier service created");
-                createCarrierService();
+        if (billingCompanyName == "") {
+            setErrorMessage("Please enter company name.");
+            return false;
+        }
+        if (billingPhone == "") {
+            setErrorMessage("Please enter phone number.");
+            return false;
+        }
+        if (billingEmail == "") {
+            setErrorMessage("Please enter email.");
+            return false;
+        }
+        if (billingAddress1 == "") {
+            setErrorMessage("Please enter address1.");
+            return false;
+        }
+        if (billingSuburb == "") {
+            setErrorMessage("Please select suburb.");
+            return false;
+        }
+        return true;
+    }
+
+    const activateMerchant = async () => {
+        try {
+            const isValid = validations();
+            console.log("isValid=", isValid);
+            if (isValid) {
+                setIsLoading(true);
+                const accessToken = localStorage.getItem("accessToken");
+                const merchantDomainId = localStorage.getItem("merchantDomainId");
+                const payload = {
+                    "id": merchantDomainId,
+                    "billingFirstName": billingFirstName,
+                    "billingLastName": billingLastName,
+                    "billingCompanyName": billingCompanyName,
+                    "billingPhone": billingPhone,
+                    "billingEmail": billingEmail,
+                    "abn": billingAbn,
+                    "packageType": "box",
+                    "billingAddress1": billingAddress1,
+                    "billingAddress2": billingAddress2,
+                    "billingSuburb": billingSuburb,
+                    "billingState": billingState,
+                    "billingPostcode": billingPostcode,
+                    "conditionalPrice": conditionalValue,
+                    "courierPreferences": activeCouriers,
+                    "bookingPreference": bookingPreference,
+                    "isInsurancePaidByCustomer": isInsurancePaidByCustomer ? 1 : 0,
+                    "fallbackAmount": fallbackAmount,
+                    "insuranceType": insuranceType,
+                    "insuranceAmount": insuranceAmount,
+                    "isDropOffTailLift": isDropOffTailLift,
+                    "tailLiftValue": tailLiftValue,
+                    "isAuthorityToLeave": "0",
+                    "processAfterMinutes": processAfterMinutes,
+                    "processAfterDays": processAfterDays,
+                    "automaticOrderProcess": automaticOrderProcess,
+                    "shoppingPreference": "show_shipping_price_with_carrier_name",
+                    "action": "post_activate_mechant",
+                    "paymentMethod": "pm_1O9jNICodfiDzZhka9lcNse4",
+                }
+                props.setActiveApiPayload(payload);
+                const headers = {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                    "request-type": process.env.REQUEST_TYPE,
+                    "version": "3.1.1",
+                    "Authorization": "Bearer " + accessToken
+                }
+                await axios.post(`${process.env.API_ENDPOINT}/api/wp/activate`, payload, { "headers": headers }).then(response => {
+                    props.setActiveNavItem("paymentMethods");
+                    localStorage.setItem("tailLiftValue", tailLiftValue);
+                    const carrierService = getCarrierSerice(carrierServices);
+                    if (carrierService == null) {
+                        createCarrierService();
+                    }
+                    setIsLoading(false);
+                }).catch(error => {
+                    console.log(error);
+                    setIsLoading(false);
+                })
+            } else {
+                setOpenErrorModal(true);
             }
-            setIsLoading(false);
-        }).catch(error => {
-            console.log(error);
-            setIsLoading(false);
-        })
+        } catch (error) {
+            console.log("error==", error);
+        }
     }
 
     const getCarrierSerice = (data) => {
@@ -246,7 +296,6 @@ export function MerchantBillingDetails(props) {
         setActiveCouriers(courierIds);
     }
 
-
     useEffect(() => {
         getMerchantDetails();
         getCouriers();
@@ -257,6 +306,7 @@ export function MerchantBillingDetails(props) {
     return (
         <div className="merchant-main">
             {isLoading && <Loader />}
+            <ErrorModal showModal={openErrorModal} message={errorMessage} onConfirm={() => setOpenErrorModal(false)} />
             <div className="merchant-heading1">
                 Merchant Billing Details
             </div>
@@ -337,12 +387,14 @@ export function MerchantBillingDetails(props) {
                     <div className="input-lebel1">
                         <span> Suburb&nbsp;</span><span style={{ color: "red" }}> *</span>
                     </div>
-                    <Select options={suburbs} onChange={(e) => {
-                        const [, extractedCity, extractedPostcode, extractedState] = e.value.match(/^(.*), (\d+) \((.*)\)$/);
-                        setBillingSuburb(extractedCity);
-                        setBillingPostcode(extractedPostcode);
-                        setBillingState(extractedState);
-                    }} />
+                    {defaultSuburb != null &&
+                        <Select options={suburbs} onChange={(e) => {
+                            const [, extractedCity, extractedPostcode, extractedState] = e.value.match(/^(.*), (\d+) \((.*)\)$/);
+                            setBillingSuburb(extractedCity);
+                            setBillingPostcode(extractedPostcode);
+                            setBillingState(extractedState);
+                        }} defaultValue={defaultSuburb} />
+                    }
                 </div>
             </div>
             <div className="shipping-config">
@@ -394,8 +446,8 @@ export function MerchantBillingDetails(props) {
                 <div className="courier-preference-items">
                     {activeCouriers.length > 0 && couriers.map((courier, i) => {
                         return <div className="input-checkbox" key={i}>
-                            <input type="checkbox" name="courierPlease" id="courierPlease" value={courier.id} onChange={(e) => handleCourierChange(e)} checked={activeCouriers.includes(courier.id.toString())} />
-                            <label htmlFor="courierPlease">&nbsp;{courier.name}</label>
+                            <input type="checkbox" name={courier.id} id={courier.id} value={courier.id} onChange={(e) => handleCourierChange(e)} checked={activeCouriers.includes(courier.id.toString())} />
+                            <label htmlFor={courier.id}>&nbsp;{courier.name}</label>
                         </div>
                     })}
                 </div>
@@ -426,7 +478,7 @@ export function MerchantBillingDetails(props) {
                     <label htmlFor="fullCartValue">&nbsp;Full Insurance Coverage of Shipment Value (Max. $10,000 AUD)</label>
                 </div>
                 <div className="input-checkbox">
-                    <input type="checkbox" name="isInsurancePaidByCustomer" id="isInsurancePaidByCustomer" onChange={(e) => setIsInsurancePaidByCustomer(e.target.checked)} />
+                    <input type="checkbox" name="isInsurancePaidByCustomer" id="isInsurancePaidByCustomer" onChange={(e) => setIsInsurancePaidByCustomer(e.target.checked)} checked={isInsurancePaidByCustomer == "1"} />
                     <label htmlFor="isInsurancePaidByCustomer">&nbsp;Insurance cost passed onto customer</label>
                 </div>
             </div>
@@ -455,7 +507,6 @@ export function MerchantBillingDetails(props) {
             <div className="input-checkbox">
                 <input type="checkbox" name="isDropOffTailLift" id="isDropOffTailLift" value={isDropOffTailLift} onChange={(e) => setIsDropOffTailLift(e.target.checked)} checked={isDropOffTailLift} />
                 <label htmlFor="isDropOffTailLift">&nbsp;Default tail lift on delivery</label>
-                {console.log(isDropOffTailLift, "isDropOffTailLift")}
                 {
                     isDropOffTailLift == true &&
                     <span className="conditional-price">
