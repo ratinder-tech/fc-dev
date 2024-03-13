@@ -1,14 +1,9 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "fba0237f7f8084edf2aa919f82b4a68d"
 name = "fc-dev"
-application_url = "https://kw-list-games-tigers.trycloudflare.com"
+client_id = "fba0237f7f8084edf2aa919f82b4a68d"
+application_url = "https://allan-realtors-galleries-angle.trycloudflare.com"
 embedded = true
-
-[build]
-automatically_update_urls_on_dev = true
-dev_store_url = "test-development-fc-app.myshopify.com"
-include_config_on_deploy = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
@@ -16,9 +11,10 @@ scopes = "read_all_orders,read_checkouts,read_orders,read_products,read_shipping
 
 [auth]
 redirect_urls = [
-  "https://kw-list-games-tigers.trycloudflare.com/auth/callback",
-  "https://kw-list-games-tigers.trycloudflare.com/auth/shopify/callback",
-  "https://kw-list-games-tigers.trycloudflare.com/api/auth/callback"
+  "https://allan-realtors-galleries-angle.trycloudflare.com/auth/callback",
+  "https://allan-realtors-galleries-angle.trycloudflare.com/auth/shopify/callback",
+  "https://allan-realtors-galleries-angle.trycloudflare.com/api/auth/callback",
+  "https://allan-realtors-galleries-angle.trycloudflare.com/.shopify/graphiql/auth/callback"
 ]
 
 [webhooks]
@@ -26,3 +22,7 @@ api_version = "2024-01"
 
 [pos]
 embedded = false
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "test-development-fc-app.myshopify.com"

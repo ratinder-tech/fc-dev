@@ -40,7 +40,7 @@ export function MerchantBillingDetails(props) {
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedCourierPref, setSelectedCourierPref] = useState([]);
   const [categoryOfGoods, setCategoryOfGoods] = useState([]);
-  const [selectedGoods, setSelectedGoods] = useState([]);
+  const [selectedGoods, setSelectedGoods] = useState(null);
 
   const fetch = useAuthenticatedFetch();
 
@@ -59,7 +59,7 @@ export function MerchantBillingDetails(props) {
   //     }
   // ]
 
-  const getMerchantDetails = async () => {
+  const getMerchantDetails =  (categories) => {
     setIsLoading(true);
     const accessToken = localStorage.getItem("accessToken");
     const headers = {
@@ -69,14 +69,12 @@ export function MerchantBillingDetails(props) {
       version: "3.1.1",
       Authorization: "Bearer " + accessToken,
     };
-    await axios
+     axios
       .get(`${process.env.API_ENDPOINT}/api/wp/get_merchant`, {
         headers: headers,
       })
-      .then((response) => {
-        console.log("merchantDetials", response.data.data);
-        // saveMerchant(response.data.data);
-        getMerchant();
+      .then((response) => {  
+        // getMerchant();
         setDefaultSuburb({
           value:
             response.data.data.billing_suburb +
@@ -93,7 +91,11 @@ export function MerchantBillingDetails(props) {
             response.data.data.billing_state +
             ")",
         });
-        setMerchantDetails(response.data.data);
+        // Set default selected goods
+    let selected_value=JSON.parse(response.data.data.categories_of_goods);
+    
+    setSelectedGoods(categories.filter((item) => selected_value.includes(item.value)));
+      setMerchantDetails(response.data.data);
         props.setMerchantDetails(response.data.data);
         setIsLoading(false);
       })
@@ -103,7 +105,7 @@ export function MerchantBillingDetails(props) {
       });
   };
 
-  const getCategoryOfGoods = async () => {
+  const getCategoryOfGoods =   () => {
     setIsLoading(true);
     const accessToken = localStorage.getItem("accessToken");
     const headers = {
@@ -113,13 +115,12 @@ export function MerchantBillingDetails(props) {
       version: "3.1.1",
       Authorization: "Bearer " + accessToken,
     };
-    await axios
+      axios
       .get(`${process.env.API_ENDPOINT}/api/wp/categories_of_goods`, {
         headers: headers,
       })
       .then((response) => {
-        console.log("categories_of_goods", response.data.data);
-
+        
         var categories = [];
         response.data.data.forEach((element) => {
           var category = { value: element.id, label: element.category };
@@ -127,6 +128,7 @@ export function MerchantBillingDetails(props) {
         });
 
         setCategoryOfGoods(categories);
+        getMerchantDetails(categories); 
         setIsLoading(false);
       })
       .catch((error) => {
@@ -167,7 +169,7 @@ export function MerchantBillingDetails(props) {
   };
 
   function getDefaultGoods() {
-    const values = selectedGoods.map((element, i) => {
+    const values = selectedGoods?.map((element, i) => {
       return categoryOfGoods[element];
     });
     console.log("values=", values);
@@ -193,10 +195,9 @@ export function MerchantBillingDetails(props) {
     setConditionalValue(merchant.conditional_price);
     setInsuranceAmount(merchant.insurance_amount);
     setIsDropOffTailLift(merchant.is_drop_off_tail_lift);
-    setSelectedGoods(JSON.parse(merchant.categories_of_goods));
 
-    const carriers = JSON.parse(merchant.courier_preferences);
-    console.log("courierpref", carriers[0]);
+    
+    const carriers = JSON.parse(merchant.courier_preferences); 
 
     setSelectedCourierPref(carriers);
 
@@ -295,7 +296,7 @@ export function MerchantBillingDetails(props) {
       setErrorMessage("Please select suburb.");
       return false;
     }
-    if (selectedGoods.length == 0) {
+    if (selectedGoods.length == 0 || selectedGoods===null) {
       setErrorMessage("Please select atleast 1 category of goods.");
       return false;
     }
@@ -340,7 +341,7 @@ export function MerchantBillingDetails(props) {
           shoppingPreference: "show_shipping_price_with_carrier_name",
           action: "post_activate_mechant",
           paymentMethod: "pm_1O9jNICodfiDzZhka9lcNse4",
-          categoriesOfGoods: selectedGoods,
+          categoriesOfGoods: selectedGoods ?? [],
         };
         props.setActiveApiPayload(payload);
         const headers = {
@@ -416,12 +417,11 @@ export function MerchantBillingDetails(props) {
     setSelectedGoods(categoryIds);
   }
 
-  useEffect(() => {
-    getMerchantDetails();
+  useEffect(() => { 
     getCouriers();
     getSuburbs();
     getCarriers();
-    getCategoryOfGoods();
+    getCategoryOfGoods(); // LIST OF CATEGORY OF GOODS
   }, []);
 
   return (
@@ -432,7 +432,9 @@ export function MerchantBillingDetails(props) {
         message={errorMessage}
         onConfirm={() => setOpenErrorModal(false)}
       />
-      <div className="merchant-heading1">Merchant Billing Details</div>
+      <div className="merchant-heading1"> 
+        Merchant Billing Details
+        </div>
       <div className="input-row">
         <div className="input-container1">
           <div className="input-lebel1">
@@ -813,23 +815,18 @@ export function MerchantBillingDetails(props) {
             <span> Category of Goods Sold&nbsp;</span>
             <span style={{ color: "red" }}> *</span>
           </div>
-          {console.log("categoryOfGoods=", categoryOfGoods[2])}
-          {console.log("list=", categoryOfGoods)}
-          <Select
-            defaultValue={[{ value: 1, label: "Alcohol" }]}
-            isMulti
-            name="colors"
-            options={[
-              { value: 1, label: "Alcohol" },
-              { value: 2, label: "Apparel & Clothing" },
-              { value: 3, label: "Automobile Parts and Panels" },
-              { value: 4, label: "Baby Products" },
-              { value: 5, label: "Batteries" },
-            ]}
-            className="basic-multi-select"
-            classNamePrefix="select"
-            onChange={(e) => handleCategoryChange(e)}
-          />
+        
+          {categoryOfGoods.length > 0 && selectedGoods   && (
+            <Select
+              defaultValue={  selectedGoods}
+              isMulti
+              name="colors"
+              options={categoryOfGoods}
+              className="basic-multi-select"
+              classNamePrefix="select"
+              onChange={(e) => handleCategoryChange(e)}
+            />
+          )}
         </div>
       </div>
       <div className="submit">
