@@ -8,24 +8,26 @@ import { ProductMapping } from "../productMapping";
 
 export function Configuration(props) {
     const [activeNavItem, setActiveNavItem] = useState("basic");
+    const [activateApiPayload, setActiveApiPayload] = useState(null);
+    const [merchantDetails, setMerchantDetails] = useState(null);
     const getComponent = () => {
         if (activeNavItem == "paymentMethods") {
-            return <PaymentMethods setActiveNavItem={setActiveNavItem} {...props} />;
+            return <PaymentMethods setActiveNavItem={setActiveNavItem}  activateApiPayload={activateApiPayload} merchantDetails={merchantDetails} {...props} />;
         } else if (activeNavItem == "pickupLocations") {
             return <PickupLocations setActiveNavItem={setActiveNavItem} {...props} />
         } else if (activeNavItem == "productMapping") {
             return <ProductMapping />;
         }
-        return <MerchantBillingDetails setActiveNavItem={setActiveNavItem} {...props} />
+        return <MerchantBillingDetails setActiveNavItem={setActiveNavItem}  setActiveApiPayload={setActiveApiPayload} setMerchantDetails={setMerchantDetails} {...props} />
     }
     return (
         <div className="configuration">
-            <div className="progress-bar">
-                <div className="progress">
+            {/* <div className="progress-bar">
+                <div className="progress" style={{width: `${progress}`}}>
                     50%
                 </div>
-            </div>
-            <div className="top-nav-bar">
+            </div> */}
+            <div className="top-nav-bar" style={{marginTop: "20px"}}>
                 <div className={activeNavItem == "basic" ? "nav-bar-item-active" : "nav-bar-item"} onClick={() => setActiveNavItem("basic")}>
                     <span>Basic</span>
                 </div>

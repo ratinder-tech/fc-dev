@@ -1,8 +1,8 @@
-import { BillingInterval, LATEST_API_VERSION } from "@shopify/shopify-api"
+import { BillingInterval, LATEST_API_VERSION } from "@shopify/shopify-api";
 import { shopifyApp } from "@shopify/shopify-app-express";
 import { SQLiteSessionStorage } from "@shopify/shopify-app-session-storage-sqlite";
 import { restResources } from "@shopify/shopify-api/rest/admin/2023-04";
-import "dotenv/config";
+
 const DB_PATH = `${process.cwd()}/database.sqlite`;
 
 // The transactions with Shopify will always be marked as test transactions, unless NODE_ENV is production.
@@ -16,35 +16,11 @@ const billingConfig = {
   },
 };
 
-// const shopify = shopifyApp({
-//   api: {
-//     apiVersion: LATEST_API_VERSION,
-//     restResources,
-//     billing: undefined, // or replace with billingConfig above to enable example billing
-//   },
-//   auth: {
-//     path: "/api/auth",
-//     callbackPath: "/api/auth/callback",
-//   },
-//   webhooks: {
-//     path: "/api/webhooks",
-//   },
-//   // This should be replaced with your preferred storage strategy
-//   sessionStorage: new SQLiteSessionStorage(DB_PATH),
-// });
-console.log(process.env,"process.env")
-
-
-
 const shopify = shopifyApp({
   api: {
-    hostName: process.env.HOST,
     apiVersion: LATEST_API_VERSION,
     restResources,
     billing: undefined, // or replace with billingConfig above to enable example billing
-    apiKey: process.env.SHOPIFY_API_KEY,
-    apiSecretKey: process.env.SHOPIFY_API_SECRET,
-    scopes: process.env.SCOPES,
   },
   auth: {
     path: "/api/auth",

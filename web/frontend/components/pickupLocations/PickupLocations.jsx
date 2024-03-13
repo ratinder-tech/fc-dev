@@ -13,6 +13,8 @@ export function PickupLocations(props) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [pickupLocations, setPickupLocations] = useState([]);
+    const [editLocation, setEditLocation] = useState(null);
+    const [merchantTags, setMerchantTags] = useState([]);
 
 
     const getPickupLocations = () => {
@@ -22,11 +24,11 @@ export function PickupLocations(props) {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        axios.get(`https://fctest-api.fastcourier.com.au/api/wp/merchant_domain/locations/${merchantDomainId}`, { "headers": headers }).then(response => {
+        axios.get(`${process.env.API_ENDPOINT}/api/wp/merchant_domain/locations/${merchantDomainId}`, { "headers": headers }).then(response => {
             setIsLoading(false);
             setPickupLocations(response.data.data);
         }).catch(error => {
@@ -35,18 +37,40 @@ export function PickupLocations(props) {
         })
     }
 
-    const deleteLocation = (id) => {
+
+    const getMerchantTags = () => {
         setIsLoading(true);
+        const accessToken = localStorage.getItem("accessToken");
+        const merchantDomainId = localStorage.getItem("merchantDomainId");
+        const headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "request-type": process.env.REQUEST_TYPE,
+            "version": "3.1.1",
+            "Authorization": "Bearer " + accessToken
+        }
+        axios.get(`${process.env.API_ENDPOINT}/api/wp/merchant_location_tags/${merchantDomainId}`, { "headers": headers }).then(response => {
+            setIsLoading(false);
+            setMerchantTags(response.data.data);
+        }).catch(error => {
+            setIsLoading(false);
+            console.log(error);
+        })
+    }
+
+    const deleteLocation = (element) => {
+        setIsLoading(true);
+        console.log("locationId==", element.id);
         const accessToken = localStorage.getItem("accessToken");
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
         const payload = {};
-        axios.post(`https://fctest-api.fastcourier.com.au/api/wp/merchant_domain/location/delete/${id}`, payload, { "headers": headers }).then(response => {
+        axios.post(`${process.env.API_ENDPOINT}/api/wp/merchant_domain/location/delete/${element.id}`, payload, { "headers": headers }).then(response => {
             setShowDeleteModal(false);
             getPickupLocations();
         }).catch(error => {
@@ -57,7 +81,29 @@ export function PickupLocations(props) {
 
     useEffect(() => {
         getPickupLocations();
+        getMerchantTags();
     }, []);
+
+    function handleEditClick(location) {
+        console.log("location==", location);
+        setEditLocation(location);
+        setShowEditModal(true);
+    }
+
+    function handleDeleteClick(location) {
+        setEditLocation(location);
+        setShowDeleteModal(true);
+    }
+
+    // function getTagName(ids) {
+    //     var tags = merchantTags.filter((element) => ids.includes(element.id));
+
+    //     var tagNames = [];
+    //     for (const tag of tags) {
+    //         tagNames.push(tag.name);
+    //     }
+    //     return tagNames;
+    // }
 
     return (
         <div className="pickup-locations">
@@ -70,6 +116,15 @@ export function PickupLocations(props) {
             <Modal showModal={showModal} width="60%" >
                 <AddLocation setShowModal={setShowModal} getPickupLocations={getPickupLocations} {...props} />
             </Modal>
+
+            {/* {editLocation != null &&
+                <>
+                    <Modal showModal={showEditModal} width="60%" >
+                        <AddLocation setShowModal={setShowEditModal} getPickupLocations={getPickupLocations} editLocation={editLocation} {...props} />
+                    </Modal>
+                    <ConfirmModal showModal={showDeleteModal} message="You want to delete location." onConfirm={() => deleteLocation(editLocation)} onCancel={() => setShowDeleteModal(false)} />
+                </>
+            } */}
 
             <div className="pickup-locations-table">
                 <table>
@@ -91,16 +146,23 @@ export function PickupLocations(props) {
                             <td>{element.phone}</td>
                             <td>{element.email}</td>
                             <td>{element.suburb}, {element.postcode}, {element.state}</td>
-                            <td>{element.tag}</td>
+                            <td>{element.tag == "[]" ? "" : element.tag}</td>
+                            {/* <td>{element.tag == "[]" ? "" : getTagName(element.tag)}</td> */}
                             <td>{element.free_shipping_postcodes}</td>
                             <td>{element.is_default == 1 ? "Yes" : "No"}</td>
                             <td className='location-actions'>
-                                <FontAwesomeIcon icon="fa-solid fa-pen-to-square" size='2xs' onClick={() => setShowEditModal(true)} />
-                                <FontAwesomeIcon icon="fa-solid fa-trash-can" size='2xs' onClick={() => setShowDeleteModal(true)} />
-                                <Modal showModal={showEditModal} width="60%" >
-                                    <AddLocation setShowModal={setShowEditModal} getPickupLocations={getPickupLocations} editLocation={element} {...props} />
-                                </Modal>
-                                <ConfirmModal showModal={showDeleteModal} message="You want to delete location." onConfirm={() => deleteLocation(element.id)} onCancel={() => setShowDeleteModal(false)} />
+                                <FontAwesomeIcon icon="fa-solid fa-pen-to-square" size='2xs' onClick={() => handleEditClick(pickupLocations[i])} />
+                                {element.is_default != 1 &&
+                                    <FontAwesomeIcon icon="fa-solid fa-trash-can" size='2xs' onClick={() => handleDeleteClick(pickupLocations[i])} />
+                                }
+                                {editLocation?.id === element.id &&
+                                    <>
+                                        <Modal showModal={showEditModal} width="60%" >
+                                            <AddLocation setShowModal={setShowEditModal} getPickupLocations={getPickupLocations} editLocation={pickupLocations[i]} {...props} />
+                                        </Modal>
+                                        <ConfirmModal showModal={showDeleteModal} message="You want to delete location." onConfirm={() => deleteLocation(pickupLocations[i])} onCancel={() => setShowDeleteModal(false)} />
+                                    </>
+                                }
                             </td>
                         </tr>
                     })}

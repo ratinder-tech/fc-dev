@@ -1,28 +1,28 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-name = "Fast Courier"
-client_id = "5141ee570075449f84e5e831ff873ed6"
-application_url = "https://noticed-outcomes-logo-departmental.trycloudflare.com"
+client_id = "fba0237f7f8084edf2aa919f82b4a68d"
+name = "fc-dev"
+application_url = "https://kw-list-games-tigers.trycloudflare.com"
 embedded = true
-
-[access_scopes]
-# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_products,write_products,read_orders,write_orders,read_all_orders,read_shipping,write_shipping,read_checkouts,write_checkouts,unauthenticated_read_checkouts,unauthenticated_write_checkouts"
-
-[auth]
-redirect_urls = [
-  "https://noticed-outcomes-logo-departmental.trycloudflare.com/auth/callback",
-  "https://noticed-outcomes-logo-departmental.trycloudflare.com/auth/shopify/callback",
-  "https://noticed-outcomes-logo-departmental.trycloudflare.com/api/auth/callback",
-  "https://noticed-outcomes-logo-departmental.trycloudflare.com/.shopify/graphiql/auth/callback"
-]
-
-[webhooks]
-api_version = "2023-10"
-
-[pos]
-embedded = false
 
 [build]
 automatically_update_urls_on_dev = true
 dev_store_url = "test-development-fc-app.myshopify.com"
+include_config_on_deploy = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_all_orders,read_checkouts,read_orders,read_products,read_shipping,unauthenticated_read_checkouts,unauthenticated_write_checkouts,write_checkouts,write_orders,write_products,write_shipping"
+
+[auth]
+redirect_urls = [
+  "https://kw-list-games-tigers.trycloudflare.com/auth/callback",
+  "https://kw-list-games-tigers.trycloudflare.com/auth/shopify/callback",
+  "https://kw-list-games-tigers.trycloudflare.com/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2024-01"
+
+[pos]
+embedded = false

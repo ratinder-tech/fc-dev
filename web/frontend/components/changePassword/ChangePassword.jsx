@@ -24,11 +24,11 @@ export function ChangePassword(props) {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "Version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        axios.post('https://fctest-api.fastcourier.com.au/api/wp/change_password', payload, { "headers": headers }).then(response => {
+        axios.post(`${process.env.API_ENDPOINT}/api/wp/change_password`, payload, { "headers": headers }).then(response => {
             setIsLoading(false);
             setShowModal(true);
         }).catch(error => {

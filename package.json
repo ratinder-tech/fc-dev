@@ -1,5 +1,5 @@
 {
-  "name": "fc-app",
+  "name": "fc-dev",
   "version": "1.0.0",
   "main": "web/index.js",
   "license": "UNLICENSED",
@@ -12,8 +12,8 @@
     "deploy": "shopify app deploy"
   },
   "dependencies": {
-    "@shopify/app": "3.50.0",
-    "@shopify/cli": "3.50.0",
+    "@shopify/app": "3.56.3",
+    "@shopify/cli": "3.56.3",
     "log4js": "^6.9.1"
   },
   "author": "Ratinder Singh",

@@ -22,10 +22,10 @@ export function ForgotPassword() {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
         }
-        axios.post('https://fctest-api.fastcourier.com.au/api/wp/forgot_password', payload, { "headers": headers }).then(response => {
+        axios.post(`${process.env.API_ENDPOINT}/api/wp/forgot_password`, payload, { "headers": headers }).then(response => {
             setIsLoading(false);
             setShowModal(true);
         }).catch(error => {

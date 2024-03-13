@@ -21,6 +21,7 @@ export function ProductMapping() {
     const [merchantTags, setMerchantTags] = useState([]);
     const [packageTypes, setPackageTypes] = useState([]);
     const [locations, setLocations] = useState([]);
+    const [variantMetafields, setVariantMetafields] = useState([]);
     const [locationBy, setLocationBy] = useState("name");
     const [locationName, setLocationName] = useState("");
     const [packageType, setPackageType] = useState("");
@@ -30,11 +31,13 @@ export function ProductMapping() {
     const [weight, setWeight] = useState("");
     const [isIndividual, setIsIndividual] = useState("Yes");
     const [selectedProducts, setSelectedProducts] = useState([]);
+    const [selectedVariants, setSelectedVariants] = useState([]);
     const [showError, setShowError] = useState(false);
     const [addLocationSubmit, setAddLocationSubmit] = useState(false);
     const [dimensionCount, setDimensionCount] = useState(1);
     const [selectedTag, setSelectedTag] = useState("all");
     const [selectedCategory, setSelectedCategory] = useState("all");
+    const [selectedProductType, setSelectedProductType] = useState("all");
     const [productData, setProductData] = useState([]);
     const [shippingPackageName, setShippingPackageName] = useState("");
     const [shippingPackageType, setShippingPackageType] = useState("");
@@ -43,6 +46,7 @@ export function ProductMapping() {
     const [shippingPackageWidth, setShippingPackageWidth] = useState("");
     const [isDefaultShippingPackage, setIsDefaultShippingPackage] = useState("No");
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [openProductIds, setOpenProductIds] = useState([]);
     const [showImportDimensionsModal, setShowImportDimensionsModal] = useState(false);
     const [csvData, setCsvData] = useState(null);
     const [dataArray, setDataArray] = useState([]);
@@ -51,16 +55,8 @@ export function ProductMapping() {
 
     const fetch = useAuthenticatedFetch();
 
-    const { data } = useAppQuery({
-        url: "/api/products-metafields",
-        reactQueryOptions: {
-            onSuccess: () => {
-                setIsLoading(false);
-            },
-        },
-    });
-
     const getAllProducts = async () => {
+        setIsLoading(true);
         const response = await fetch(
             `/api/products`,
             {
@@ -72,9 +68,62 @@ export function ProductMapping() {
         );
 
         const data = await response.json();
+        console.log("products", data.body.data.products);
 
-        setProducts(data.data);
+        const formattedProducts = formatProductData(data.body.data.products);
+        console.log("formattedproducts", formattedProducts);
+
+        setProducts(formattedProducts);
+        setIsLoading(false);
     }
+    function getProductIdFromGID(gid) {
+        const parts = gid.split("/"); // Split the URL by '/'
+        const productId = parts[parts.length - 1];
+        return productId;
+    }
+    function formatProductData(products) {
+        let formattedResponse = [];
+
+        products.edges.forEach(edge => {
+            let formattedProduct = {
+                id: getProductIdFromGID(edge.node.id),
+                title: edge.node.title,
+                metafields: edge.node.metafields.edges.map(_edge => _edge.node),
+                variants: edge.node.variants.edges.map(variantEdge => {
+                    return {
+                        id: getProductIdFromGID(variantEdge.node.id),
+                        title: variantEdge.node.title,
+                        price: variantEdge.node.price,
+                        metafields: variantEdge.node.metafields.edges.map(_edge => _edge.node)
+                    };
+                })
+            };
+            formattedResponse.push(formattedProduct);
+        });
+
+        return formattedResponse;
+    }
+
+
+
+
+    // const getVariantMeta = async () => {
+    //     const response = await fetch(
+    //         `/api/variant-metafields`,
+    //         {
+    //             method: "GET",
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //         },
+    //     );
+
+    //     const data = await response.json();
+    //     console.log("variantmetafields", data.data);
+    //     setVariantMetafields(data.data);
+    // }
+
+
 
     const getShippingBoxes = async () => {
         const response = await fetch(
@@ -89,7 +138,6 @@ export function ProductMapping() {
 
         const data = await response.json();
 
-        console.log("shippingBoxes", data);
 
         setShippingBoxes(data);
     }
@@ -97,17 +145,9 @@ export function ProductMapping() {
     useEffect(() => {
         getShippingBoxes();
         getAllProducts();
+        // getVariantMeta();
     }, []);
 
-
-    // const shippingBoxes = useAppQuery({
-    //     url: "/api/shipping-boxes",
-    //     reactQueryOptions: {
-    //         onSuccess: () => {
-    //             setIsLoading(false);
-    //         },
-    //     },
-    // });
 
 
     const uniqueTags = new Set();
@@ -132,10 +172,10 @@ export function ProductMapping() {
     const uniqueCategoriesArray = Array.from(uniqueCategories);
 
 
-    const getProducts = products?.map(item1 => {
-        const matchingItem2 = data?.body?.data?.products?.edges.find(item2 => item2.node.id.includes(item1.id));
-        return { ...item1, ...matchingItem2 };
-    });
+    // const getProducts = products?.map(item1 => {
+    //     const matchingItem2 = data?.body?.data?.products?.edges.find(item2 => item2.node.id.includes(item1.id));
+    //     return { ...item1, ...matchingItem2 };
+    // });
 
 
     useEffect(() => {
@@ -167,7 +207,6 @@ export function ProductMapping() {
             skipEmptyLines: false,
             complete: async (result) => {
                 setDataArray(result.data);
-                console.log("csvData", result.data);
                 const importData = result.data;
                 const productIds = importData.map(element => {
                     const product = products?.data?.data.find(element1 => {
@@ -175,8 +214,6 @@ export function ProductMapping() {
                     })
                     return product.id;
                 })
-                console.log("productIds", productIds);
-                console.log("importData", importData);
                 const element = importData[0];
                 // importData.map(async (element) => {
                 const response = await fetch('/api/product/add-dimensions', {
@@ -195,8 +232,8 @@ export function ProductMapping() {
                     }),
                 });
 
-                console.log("response=", response);
                 // })
+                getAllProducts();
                 setIsLoading(false);
                 setShowImportDimensionsModal(false);
             },
@@ -211,11 +248,11 @@ export function ProductMapping() {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        axios.get(`https://fctest-api.fastcourier.com.au/api/wp/merchant_domain/locations/${merchantDomainId}`, { "headers": headers }).then(response => {
+        axios.get(`${process.env.API_ENDPOINT}/api/wp/merchant_domain/locations/${merchantDomainId}`, { "headers": headers }).then(response => {
             setIsLoading(false);
             setLocations(response.data.data);
         }).catch(error => {
@@ -231,11 +268,11 @@ export function ProductMapping() {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        axios.get(`https://fctest-api.fastcourier.com.au/api/wp/merchant_location_tags/${merchantDomainId}`, { "headers": headers }).then(response => {
+        axios.get(`${process.env.API_ENDPOINT}/api/wp/merchant_location_tags/${merchantDomainId}`, { "headers": headers }).then(response => {
             setIsLoading(false);
             setMerchantTags(response.data.data);
         }).catch(error => {
@@ -251,11 +288,11 @@ export function ProductMapping() {
         const headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "request-type": "shopify_development",
+            "request-type": process.env.REQUEST_TYPE,
             "version": "3.1.1",
             "Authorization": "Bearer " + accessToken
         }
-        axios.get(`https://fctest-api.fastcourier.com.au/api/wp/package_types`, { "headers": headers }).then(response => {
+        axios.get(`${process.env.API_ENDPOINT}/api/wp/package_types`, { "headers": headers }).then(response => {
             setIsLoading(false);
             setPackageTypes(response.data.data);
         }).catch(error => {
@@ -269,6 +306,13 @@ export function ProductMapping() {
             ? selectedProducts.filter(item => item !== e.target.value)
             : [...selectedProducts, e.target.value];
         setSelectedProducts(productIds);
+    }
+
+    const selectVariant = (e) => {
+        const variantIds = selectedVariants.includes(e.target.value)
+            ? selectedVariants.filter(item => item !== e.target.value)
+            : [...selectedVariants, e.target.value];
+        setSelectedVariants(variantIds);
     }
 
     const handleSelectAll = (e) => {
@@ -287,10 +331,10 @@ export function ProductMapping() {
                 body: JSON.stringify({
                     location_name: locationName,
                     product_ids: selectedProducts,
+                    variant_ids: selectedVariants,
                 }),
             });
-            console.log("response", response);
-            getProducts();
+            getAllProducts();
             setIsLoading(false);
             setShowAssignLocationModal(false);
         } catch (err) {
@@ -315,10 +359,11 @@ export function ProductMapping() {
                     weight: weight,
                     isIndividual: isIndividual,
                     product_ids: selectedProducts,
+                    variant_ids: selectedVariants,
                 }),
             });
+            getAllProducts();
             setIsLoading(false);
-            getProducts();
             setshowDimensionsModal(false);
         } catch (err) {
             setIsLoading(false);
@@ -390,9 +435,41 @@ export function ProductMapping() {
     }
 
     const getProductMetaField = (metafields, keyValue) => {
-        var location = metafields?.find((element) => element.node.key == keyValue);
-        return location != undefined ? location.node.value : null;
+        var location = metafields?.find((element) => element.key == keyValue);
+        return location != undefined ? location.value : null;
     }
+
+    const handleFreeShippingChange = async (e, id) => {
+        const checked = e.target.checked;
+        try {
+            setIsLoading(true);
+            await fetch('/api/free-shipping', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    "productId": id,
+                    "isFreeShipping": checked,
+                }),
+            });
+            getAllProducts();
+            setIsLoading(false);
+        } catch (err) {
+            setIsLoading(false);
+            console.log(err);
+        }
+    }
+
+
+    const openVariableProduct = (id) => {
+        const variableProducts = openProductIds.includes(id)
+            ? openProductIds.filter(item => item !== id)
+            : [...openProductIds, id];
+        setOpenProductIds(variableProducts)
+    }
+
+
 
     return (
         <div className="product-mapping">
@@ -433,19 +510,33 @@ export function ProductMapping() {
                             </select>
                         </div>
                     </div>
+                    <div className="input-container">
+                        <div className="input-lebel">
+                            <span> Product Type&nbsp;</span>
+                        </div>
+                        <div className="input-field">
+                            <select className="input-field-text" type="text" value={selectedProductType} onChange={(e) => setSelectedProductType(e.target.value)}>
+                                <option value="all">All</option>
+                                <option value="simple">Simple</option>
+                                <option value="virtual">Virtual</option>
+                                <option value="variable">Variable</option>
+                            </select>
+                        </div>
+                    </div>
                     <div className="filter-buttons">
                         {/* <button> Filter </button> */}
                         <button onClick={() => resetFilters()}> Reset </button>
                     </div>
                 </div>
+                {console.log("condition==", (selectedProducts.length > 0 || selectedVariants.length > 0))}
                 <div className="product-actions">
                     <button className="submit-btn" onClick={() => setShowShippingBoxesModal(true)}>
                         Shipping Boxes
                     </button>
-                    <button className="submit-btn" onClick={() => selectedProducts.length > 0 ? setshowDimensionsModal(true) : setShowError(true)}>
+                    <button className="submit-btn" onClick={() => (selectedProducts.length > 0 || selectedVariants.length > 0) ? setshowDimensionsModal(true) : setShowError(true)}>
                         Manually Assign Dimensions
                     </button>
-                    <button className="submit-btn" onClick={() => selectedProducts.length > 0 ? setShowAssignLocationModal(true) : setShowError(true)}>
+                    <button className="submit-btn" onClick={() => (selectedProducts.length > 0 || selectedVariants.length > 0) ? setShowAssignLocationModal(true) : setShowError(true)}>
                         Assign Location
                     </button>
                     <button className="submit-btn" onClick={() => setShowImportDimensionsModal(true)}>
@@ -761,26 +852,87 @@ export function ProductMapping() {
                         <th>L x W x H</th>
                         <th>Weight</th>
                         <th>Is Individual</th>
+                        {/* <th>Eligible For Shipping</th> */}
+                        <th>Free Shipping</th>
                         <th>Location/Tag</th>
                     </tr>
-                    {getProducts?.length > 0 && getProducts.map((element, i) => {
-                        return <tr key={i} className='products-row' style={{ background: i % 2 != 0 ? "#F5F8FA" : "#FFFFFF" }}>
-                            <td><input type="checkbox" style={{ width: "40px" }} value={element.id} onChange={(e) => selectProduct(e)} checked={selectedProducts.includes(element.id.toString())} /></td>
-                            <td width="10%">{element.title}</td>
-                            <td width="10%">{element.variants[0].sku}</td>
-                            <td width="10%">{"$" + element.variants[0].price}</td>
-                            <td width="10%">{element.product_type}</td>
-                            <td width="20%">{element.tags}</td>
-                            <td width="10%">{getProductMetaField(element.node?.metafields?.edges, "package_type")}</td>
-                            <td width="20%">{
-                                getProductMetaField(element.node?.metafields?.edges, "width") != null ?
-                                    getProductMetaField(element.node?.metafields?.edges, "length") + " x " + getProductMetaField(element.node?.metafields?.edges, "width") + " x " + getProductMetaField(element.node?.metafields?.edges, "height")
-                                    : "0 x 0 x 0"
-                            }</td>
-                            <td width="10%">{getProductMetaField(element.node?.metafields?.edges, "weight") ?? "0kg"}</td>
-                            <td width="10%">{getProductMetaField(element.node?.metafields?.edges, "is_individaul") ?? "Yes"}</td>
-                            <td width="10%">{getProductMetaField(element.node?.metafields?.edges, "location")}</td>
-                        </tr>
+                    {products?.length > 0 && products.map((element, i) => {
+                        return element?.variants.length > 0 && element?.variants[0]?.title == "Default Title" ?
+                            <tr key={i} className='products-row' style={{ background: i % 2 != 0 ? "#F5F8FA" : "#FFFFFF" }}>
+                                <td><input type="checkbox" style={{ width: "40px" }} value={element.id} onChange={(e) => selectProduct(e)} checked={selectedProducts.includes(element.id.toString())} /></td>
+                                <td width="10%">{element.title}</td>
+                                <td width="10%">{element.variants[0].sku}</td>
+                                <td width="10%">{"$" + element.variants[0].price}</td>
+                                <td width="10%">{element.product_type}</td>
+                                <td width="20%">{element.tags}</td>
+                                <td width="10%">{getProductMetaField(element.metafields, "package_type")}</td>
+                                <td width="20%">{
+                                    getProductMetaField(element.metafields, "width") != null ?
+                                        getProductMetaField(element.metafields, "length") + " x " + getProductMetaField(element.metafields, "width") + " x " + getProductMetaField(element.metafields, "height")
+                                        : "0 x 0 x 0"
+                                }</td>
+                                <td width="10%">{getProductMetaField(element.metafields, "weight") ?? "0kg"}</td>
+                                <td width="10%">{getProductMetaField(element.metafields, "is_individaul")}</td>
+                                {/* <td width="10%"><label className="switch">
+                                    <input type="checkbox" />
+                                    <span className="slider round"></span>
+                                </label></td> */}
+                                <td width="10%"><label className="switch">
+                                    <input type="checkbox" onChange={(e) => handleFreeShippingChange(e, element.id)}  checked={getProductMetaField(element.metafields, "is_free_shipping") == "1" ? true : false} />
+                                    <span className="slider round"></span>
+                                </label></td>
+                                <td width="10%">{getProductMetaField(element.metafields, "location")}</td>
+                            </tr>
+                            :
+                            <>
+                                <tr className='products-row' style={{ background: i % 2 != 0 ? "#F5F8FA" : "#FFFFFF", cursor: "pointer" }} onClick={() => openVariableProduct(element.id)}>
+                                    <td style={{ textAlign: "center" }}><FontAwesomeIcon icon={openProductIds.includes(element.id) ? "fa-solid fa-caret-down" : "fa-solid fa-caret-right"} style={{ height: "1.3rem" }} /></td>
+                                    <td width="10%">{element.title}</td>
+                                    <td width="10%">{element.variants[0].sku}</td>
+                                    <td width="10%">{"$" + element.variants[0].price}</td>
+                                    <td width="10%">{element.product_type}</td>
+                                    <td width="20%">{element.tags}</td>
+                                    <td width="10%">{"-- --"}</td>
+                                    <td width="20%">{"-- --"}</td>
+                                    <td width="10%">{"-- --"}</td>
+                                    <td width="10%">{"-- --"}</td>
+                                    {/* <td width="10%"><label className="switch">
+                                        <input type="checkbox" />
+                                        <span className="slider round"></span>
+                                    </label></td> */}
+                                    <td width="10%"><label className="switch">
+                                        <input type="checkbox" onChange={(e) => handleFreeShippingChange(e, element.id)} checked={getProductMetaField(element.metafields, "is_free_shipping") == "1" ? true : false} />
+                                        <span className="slider round"></span>
+                                    </label></td>
+                                    <td width="10%">{getProductMetaField(element.metafields, "location")}</td>
+                                </tr>
+                                {openProductIds.includes(element.id) && element.variants.map((value, i) => {
+                                    return <tr className='products-row' style={{ background: "#eaebeb" }}>
+                                        <td><input type="checkbox" style={{ width: "40px" }} value={value.id} onChange={(e) => selectVariant(e)} checked={selectedVariants.includes(value.id.toString())} /></td>
+                                        <td width="10%">{value.title}</td>
+                                        <td width="10%">{value.sku}</td>
+                                        <td width="10%">{"$" + value.price}</td>
+                                        <td width="10%">{ }</td>
+                                        <td width="20%">{ }</td>
+                                        <td width="10%">{getProductMetaField(value.metafields, "package_type")}</td>
+                                        <td width="10%">{
+                                            getProductMetaField(value.metafields, "width") != null ?
+                                                getProductMetaField(value.metafields, "length") + " x " + getProductMetaField(value.metafields, "width") + " x " + getProductMetaField(value.metafields, "height")
+                                                : "0 x 0 x 0"
+                                        }</td>
+                                        <td width="20%">{getProductMetaField(value.metafields, "weight")}</td>
+                                        <td width="10%">{getProductMetaField(value.metafields, "is_individaul") }</td>
+                                        {/* <td width="10%"><label className="switch">
+                                            <input type="checkbox" />
+                                            <span className="slider round"></span>
+                                        </label></td> */}
+                                        <td></td>
+                                        <td width="10%">{getProductMetaField(value.metafields, "location")}</td>
+                                    </tr>
+                                })
+                                }
+
+                            </>
                     })}
                 </table>
             </div>
