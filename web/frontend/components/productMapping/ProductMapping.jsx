@@ -55,17 +55,6 @@ export function ProductMapping() {
 
     const fetch = useAuthenticatedFetch();
 
-    // const { data } = useAppQuery({
-    //     url: "/api/products-metafields",
-    //     reactQueryOptions: {
-    //         onSuccess: () => {
-    //             setIsLoading(false);
-    //         },
-    //     },
-    // });
-
-    // console.log("products==", data);
-
     const getAllProducts = async () => {
         setIsLoading(true);
         const response = await fetch(
@@ -159,15 +148,6 @@ export function ProductMapping() {
         // getVariantMeta();
     }, []);
 
-
-    // const shippingBoxes = useAppQuery({
-    //     url: "/api/shipping-boxes",
-    //     reactQueryOptions: {
-    //         onSuccess: () => {
-    //             setIsLoading(false);
-    //         },
-    //     },
-    // });
 
 
     const uniqueTags = new Set();

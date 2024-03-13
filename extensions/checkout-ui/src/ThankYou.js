@@ -52,7 +52,7 @@ function Extension() {
 
 
     const result = await fetch(
-      `https://fc-app.vuwork.com/api/get-order/${orderId}`,
+      `https://sodium-maintaining-anthropology-sony.trycloudflare.com/api/get-order/${orderId}`,
       {
         method: "GET",
         headers: {
@@ -82,7 +82,7 @@ function Extension() {
       console.log("carrierName", carrierName);
 
       const setMetafields = await fetch(
-        `https://fc-app.vuwork.com/api/set-order-metafields`,
+        `https://sodium-maintaining-anthropology-sony.trycloudflare.com/api/set-order-metafields`,
         {
           method: "POST",
           headers: {
@@ -100,7 +100,7 @@ function Extension() {
       );
     } else {
       const result = await fetch(
-        `https://fc-app.vuwork.com/api/process-order/${orderId}`,
+        `https://sodium-maintaining-anthropology-sony.trycloudflare.com/api/process-order/${orderId}`,
         {
           method: "GET",
           headers: {

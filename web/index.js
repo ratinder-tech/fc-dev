@@ -1,19 +1,14 @@
 // @ts-check
 import { join } from "path";
 import { readFileSync } from "fs";
-// const bodyParser = require('body-parser');
 import express from "express";
 import serveStatic from "serve-static";
-
-import shopify from "./shopify.js";
-import productCreator from "./product-creator.js";
-import GDPRWebhookHandlers from "./gdpr.js";
 import { MongoClient, ObjectId } from "mongodb";
-import log4js from "log4js";
-import * as fs from "fs";
+import shopify from "./shopify.js";
+import PrivacyWebhookHandlers from "./privacy.js";
 import bodyParser from "body-parser";
-
 import sqlite3 from 'sqlite3';
+
 
 const db = new sqlite3.Database('./database.sqlite', sqlite3.OPEN_READWRITE, (err) => {
   if (err) {
@@ -33,26 +28,6 @@ function getSession() {
     });
   });
 }
-
-
-
-log4js.configure({
-  appenders: {
-    file: {
-      type: "file",
-      filename: "logs.log"
-    }
-  },
-  categories: {
-    default: {
-      appenders:
-        ["file"], level: "info"
-    }
-  },
-});
-
-//Create a logger object 
-const logger = log4js.getLogger();
 
 const url = "mongodb://localhost:27017";
 const database = "local";
@@ -74,7 +49,10 @@ const STATIC_PATH =
     : `${process.cwd()}/frontend/`;
 
 const app = express();
+
 app.use(bodyParser.json());
+
+
 
 const getValueByKey = (data, key) => {
   const item = data.find(obj => obj.key === key);
@@ -269,27 +247,6 @@ app.post("/api/shipping-rates", async (_req, res) => {
 
 });
 
-app.get("/api/update-order-status", async (_req, res) => {
-  _req.body.forEach(async (element) => {
-    const order = new shopify.api.rest.Order({ session: res.locals.shopify.session });
-    // order.id = parseInt(id);
-    order.metafields = [
-      {
-        key: "fc_order_status",
-        value: element?.status_for_merchant,
-        type: "single_line_text_field",
-        namespace: "Order",
-      },
-    ];
-    await order.save({
-      update: true,
-    });
-
-    // orders.push(order);
-  });
-  res.status(200).send("success");
-});
-
 // Set up Shopify authentication and webhook handling
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
@@ -299,7 +256,7 @@ app.get(
 );
 app.post(
   shopify.config.webhooks.path,
-  shopify.processWebhooks({ webhookHandlers: GDPRWebhookHandlers })
+  shopify.processWebhooks({ webhookHandlers: PrivacyWebhookHandlers })
 );
 
 // If you are adding routes outside of the /api path, remember to
@@ -309,258 +266,15 @@ app.use("/api/*", shopify.validateAuthenticatedSession());
 
 app.use(express.json());
 
-app.post("/api/hold-orders", async (_req, res) => {
-  const { orderIds } = _req.body;
-  const session = res.locals.shopify.session;
-  var orders = [];
-  orderIds.forEach(async (id) => {
-    // const fulfillment_order = new shopify.api.rest.FulfillmentOrder({ session: res.locals.shopify.session });
-    // fulfillment_order.id = parseInt(id);
-    // await fulfillment_order.hold({
-    //   body: { "fulfillment_hold": { "reason": "inventory_out_of_stock", "reason_notes": "Not enough inventory to complete this work.", "fulfillment_order_line_items": [{ "id": "", "quantity": 1 }] } },
-    // });
-    const metafield = new shopify.api.rest.Metafield({
-      session: res.locals.shopify.session,
-    });
-    metafield.order_id = id;
-    metafield.namespace = "Order";
-    metafield.key = "fc_order_status";
-    metafield.type = "single_line_text_field";
-    metafield.value = "Hold";
-    await metafield.save({
-      update: true,
-    });
 
-    orders.push(metafield);
-  });
-  res.status(200).send(orders);
-});
-
-app.post("/api/book-orders", async (_req, res) => {
+app.get("/api/get-merchant", async (_req, res) => {
   try {
-    const { orderIds, collectionDate } = _req.body;
-    const session = res.locals.shopify.session;
-    console.log("ress===", res)
-    console.log("locals===", res.locals)
-    console.log("shopify===", res.locals.shopify)
-    var orders = [];
-    orderIds.forEach(async (id) => {
-      // const fulfillment_order = new shopify.api.rest.FulfillmentOrder({ session: session });
-      // fulfillment_order.id = parseInt(id);
-      // await fulfillment_order.reschedule({
-      //   body: { "fulfillment_order": { "new_fulfill_at": collectionDate } },
-      // });
-      const order = new shopify.api.rest.Order({ session: session });
-      order.id = parseInt(id);
-      order.metafields = [
-        {
-          key: "fc_order_status",
-          value: "Booked for collection",
-          type: "single_line_text_field",
-          namespace: "Order",
-        },
-        {
-          key: "collection_date",
-          value: collectionDate,
-          type: "single_line_text_field",
-          namespace: "Order",
-        }
-      ];
-      await order.save({
-        update: true,
-      });
-
-      orders.push(order);
-    });
-    res.status(200).send(orders);
+    const db = await getConnection();
+    let collection = db.collection("merchant_details");
+    const response = await collection.find({}).toArray();
+    res.status(200).send(response);
   } catch (error) {
-    console.log("book-orders=", error)
-  }
-});
-
-
-
-app.post("/api/free-shipping", async (_req, res) => {
-  try {
-    const { productId, isFreeShipping } = _req.body;
-    const session = res.locals.shopify.session;
-    // const order = new shopify.api.rest.Order({ session: session });
-    // order.id = productId;
-    console.log("productId===", productId);
-    console.log("isFreeShipping===", isFreeShipping);
-    const value = isFreeShipping === true ? "1" : "0";
-    console.log("value==", value);
-    const metafield = new shopify.api.rest.Metafield({
-      session: session,
-    });
-    metafield.product_id = productId;
-    metafield.namespace = "Order";
-    metafield.key = "is_free_shipping";
-    metafield.type = "single_line_text_field";
-    metafield.value = value;
-    await metafield.save({
-      update: true,
-    });
-
-    res.status(200).send(metafield);
-  } catch (error) {
-    console.log("free-shipping=", error);
-  }
-
-});
-
-app.get("/api/orders", async (_req, res) => {
-  try {
-    const orders = await shopify.api.rest.Order.all({
-      session: res.locals.shopify.session,
-      status: "any",
-    });
-    res.status(200).send(orders);
-  } catch (error) {
-    console.log("orders=", error);
-  }
-});
-
-app.get("/api/carrier-services", async (_req, res) => {
-  try {
-    const carriers = await shopify.api.rest.CarrierService.all({
-      session: res.locals.shopify.session,
-    });
-    res.status(200).send(carriers);
-  } catch (error) {
-    console.log("carrier-services=", error);
-  }
-
-});
-
-app.post("/api/carrier-service/create", async (_req, res) => {
-  try {
-    const carrier_service = new shopify.api.rest.CarrierService({ session: res.locals.shopify.session });
-    carrier_service.name = "Fast Courier";
-    carrier_service.callback_url = "https://fc-app.vuwork.com/api/shipping-rates";
-    carrier_service.service_discovery = true;
-    await carrier_service.save({
-      update: true,
-    });
-    res.status(200).send(carrier_service);
-  } catch (error) {
-    console.log("carrier-create=", error);
-  }
-
-});
-
-
-// app.post("/api/carrier-service/update", async (_req, res) => {
-//   try {
-//     const carrier_service = new shopify.api.rest.CarrierService({ session: res.locals.shopify.session });
-//     carrier_service.id = 66713190619;
-//     carrier_service.name = "Fast Courier";
-//     carrier_service.callback_url = "https://complications-complexity-postcards-definition.trycloudflare.com/api/shipping-rates";
-//     await carrier_service.save({
-//       update: true,
-//     });
-//     res.status(200).send(carrier_service);
-//   } catch (error) {
-//     console.log("carrier-update=", error);
-//   }
-
-// });
-
-app.post("/api/carrier-service/delete", async (_req, res) => {
-  try {
-    await shopify.api.rest.CarrierService.delete({
-      session: res.locals.shopify.session,
-      id: 66098495707,
-    });
-  } catch (error) {
-    console.log("carrier-delete=", error);
-  }
-
-});
-
-app.get("/api/get-checkout/:checkoutToken", async (_req, res) => {
-  try {
-    const checkoutToken = _req.params.checkoutToken;
-    const checkout = await shopify.api.rest.Checkout.find({
-      session: res.locals.shopify.session,
-      token: checkoutToken,
-    });
-    res.status(200).send(checkout);
-  } catch (error) {
-    console.log("get-checkout=", error);
-  }
-
-});
-
-app.get("/api/get-order/:orderId", async (_req, res) => {
-  try {
-    const orderId = _req.params.orderId;
-    const order = await shopify.api.rest.Order.find({
-      session: res.locals.shopify.session,
-      id: parseInt(orderId)
-    });
-    res.status(200).send(order);
-  } catch (error) {
-    console.log("get-order=", error);
-  }
-
-});
-
-app.get("/api/process-order/:orderId", async (_req, res) => {
-  try {
-    const orderId = _req.params.orderId;
-    const order = new shopify.api.rest.Order({ session: res.locals.shopify.session });
-    order.id = parseInt(orderId);
-    order.metafields = [
-      {
-        key: "fc_order_status",
-        value: "Processed",
-        type: "single_line_text_field",
-        namespace: "Order",
-      },
-    ];
-    await order.save({
-      update: true,
-    });
-    res.status(200).send(order);
-  } catch (error) {
-    console.log("process-order=", error);
-  }
-
-});
-
-
-app.post("/api/set-order-metafields", async (_req, res) => {
-  try {
-    const { quoteId, orderHashId, orderId, carrierName } = _req.body;
-    const order = new shopify.api.rest.Order({ session: res.locals.shopify.session });
-    order.id = parseInt(orderId);
-    order.metafields = [
-      {
-        key: "quote_id",
-        value: quoteId,
-        type: "single_line_text_field",
-        namespace: "Order",
-      },
-      {
-        key: "order_hash_id",
-        value: orderHashId,
-        type: "single_line_text_field",
-        namespace: "Order",
-      },
-      {
-        key: "carrier_name",
-        value: carrierName,
-        type: "single_line_text_field",
-        namespace: "Order",
-      },
-    ];
-    await order.save({
-      update: true,
-    });
-    res.status(200).send(order);
-  } catch (error) {
-    console.log("set-order-metafields=", error);
+    console.log("get-merchant=", error);
   }
 
 });
@@ -574,18 +288,6 @@ app.post("/api/save-merchant", async (_req, res) => {
     res.status(200).send(response);
   } catch (error) {
     console.log("save-merchant=", error);
-  }
-
-});
-
-app.get("/api/get-merchant", async (_req, res) => {
-  try {
-    const db = await getConnection();
-    let collection = db.collection("merchant_details");
-    const response = await collection.find({}).toArray();
-    res.status(200).send(response);
-  } catch (error) {
-    console.log("get-merchant=", error);
   }
 
 });
@@ -628,20 +330,6 @@ app.get("/api/shipping-boxes", async (_req, res) => {
 
 });
 
-app.get("/api/products/count", async (_req, res) => {
-  const countData = await shopify.api.rest.Product.count({
-    session: res.locals.shopify.session,
-  });
-  res.status(200).send(countData);
-});
-
-// app.get("/api/products", async (_req, res) => {
-//   const products = await shopify.api.rest.Product.all({
-//     session: res.locals.shopify.session,
-//   });
-//   res.status(200).send(products);
-// });
-
 app.get("/api/get-token", async (_req, res) => {
   try {
     const products = await shopify.api.rest.Product.all({
@@ -650,135 +338,6 @@ app.get("/api/get-token", async (_req, res) => {
     res.status(200).send(products);
   } catch (error) {
     console.log("get-token=", error);
-  }
-
-});
-
-app.get("/api/order-metafields", async (_req, res) => {
-  try {
-    const session = res.locals.shopify.session;
-    const client = new shopify.api.clients.Graphql({ session });
-    const queryString = `{
-    orders(first: 80) {
-      edges {
-        node {
-          id
-          metafields(first: 10) {
-            edges {
-              node {
-                key
-                value
-              }
-            }
-          }
-        }
-      }
-    }
-  }`;
-
-    const data = await client.query({
-      data: queryString,
-    });
-    res.status(200).send(data);
-  } catch (error) {
-    console.log("order-metafields=", error);
-  }
-
-});
-
-app.get("/api/products", async (_req, res) => {
-  try {
-    const session = res.locals.shopify.session;
-    const client = new shopify.api.clients.Graphql({ session });
-    const queryString = `{
-      products(first: 30) {
-        edges {
-          node {
-            id
-            title
-            metafields(first: 10) {
-            edges {
-              node {
-                key
-                value
-              }
-            }
-          }        
-            variants(first: 10) {
-              edges {
-                node {
-                  id
-                  title
-                  price
-                  metafields(first: 10) {
-                    edges {
-                      node {
-                        key
-                        value
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }`;
-
-    const data = await client.query({
-      data: queryString,
-    });
-    res.status(200).send(data);
-  } catch (error) {
-    console.log("products==", error);
-  }
-});
-
-app.post("/api/product/add-location", async (_req, res) => {
-  try {
-    const { location_name, product_ids, variant_ids } = _req.body;
-    const session = res.locals.shopify.session;
-    var products = [];
-    if (product_ids.length > 0) {
-      product_ids.forEach(async (element) => {
-        const product = new shopify.api.rest.Product({ session: session });
-        product.id = parseInt(element);
-        product.metafields = [
-          {
-            key: "location",
-            value: location_name,
-            type: "single_line_text_field",
-            namespace: "Product",
-          },
-        ];
-        await product.save({
-          update: true,
-        });
-
-        products.push(product);
-      });
-    }
-    if (variant_ids.length > 0) {
-      variant_ids.forEach(async (element) => {
-        const variant = new shopify.api.rest.Variant({ session: session });
-        variant.id = parseInt(element);
-        variant.metafields = [
-          {
-            key: "location",
-            value: location_name,
-            type: "single_line_text_field",
-            namespace: "Product",
-          },
-        ];
-        await variant.save({
-          update: true,
-        });
-      });
-    }
-    res.status(200).send(products);
-  } catch (error) {
-    console.log("add-location==", error);
   }
 
 });
@@ -901,23 +460,393 @@ app.post("/api/product/add-dimensions", async (_req, res) => {
 
 });
 
-app.get("/api/products/create", async (_req, res) => {
-  let status = 200;
-  let error = null;
-
+app.post("/api/product/add-location", async (_req, res) => {
   try {
-    await productCreator(res.locals.shopify.session);
-  } catch (e) {
-    console.log(`Failed to process products/create: ${e.message}`);
-    status = 500;
-    error = e.message;
+    const { location_name, product_ids, variant_ids } = _req.body;
+    const session = res.locals.shopify.session;
+    var products = [];
+    if (product_ids.length > 0) {
+      product_ids.forEach(async (element) => {
+        const product = new shopify.api.rest.Product({ session: session });
+        product.id = parseInt(element);
+        product.metafields = [
+          {
+            key: "location",
+            value: location_name,
+            type: "single_line_text_field",
+            namespace: "Product",
+          },
+        ];
+        await product.save({
+          update: true,
+        });
+
+        products.push(product);
+      });
+    }
+    if (variant_ids.length > 0) {
+      variant_ids.forEach(async (element) => {
+        const variant = new shopify.api.rest.Variant({ session: session });
+        variant.id = parseInt(element);
+        variant.metafields = [
+          {
+            key: "location",
+            value: location_name,
+            type: "single_line_text_field",
+            namespace: "Product",
+          },
+        ];
+        await variant.save({
+          update: true,
+        });
+      });
+    }
+    res.status(200).send(products);
+  } catch (error) {
+    console.log("add-location==", error);
   }
-  res.status(status).send({ success: status === 200, error });
+
+});
+
+
+app.post("/api/free-shipping", async (_req, res) => {
+  try {
+    const { productId, isFreeShipping } = _req.body;
+    const session = res.locals.shopify.session;
+    // const order = new shopify.api.rest.Order({ session: session });
+    // order.id = productId;
+    console.log("productId===", productId);
+    console.log("isFreeShipping===", isFreeShipping);
+    const value = isFreeShipping === true ? "1" : "0";
+    console.log("value==", value);
+    const metafield = new shopify.api.rest.Metafield({
+      session: session,
+    });
+    metafield.product_id = productId;
+    metafield.namespace = "Order";
+    metafield.key = "is_free_shipping";
+    metafield.type = "single_line_text_field";
+    metafield.value = value;
+    await metafield.save({
+      update: true,
+    });
+
+    res.status(200).send(metafield);
+  } catch (error) {
+    console.log("free-shipping=", error);
+  }
+
+});
+
+
+app.get("/api/carrier-services", async (_req, res) => {
+  try {
+    const carriers = await shopify.api.rest.CarrierService.all({
+      session: res.locals.shopify.session,
+    });
+    res.status(200).send(carriers);
+  } catch (error) {
+    console.log("carrier-services=", error);
+  }
+
+});
+
+app.post("/api/carrier-service/create", async (_req, res) => {
+  try {
+    const carrier_service = new shopify.api.rest.CarrierService({ session: res.locals.shopify.session });
+    carrier_service.name = "Fast Courier";
+    carrier_service.callback_url = "https://fc-app.vuwork.com/api/shipping-rates";
+    carrier_service.service_discovery = true;
+    await carrier_service.save({
+      update: true,
+    });
+    res.status(200).send(carrier_service);
+  } catch (error) {
+    console.log("carrier-create=", error);
+  }
+
+});
+
+app.post("/api/carrier-service/update", async (_req, res) => {
+  try {
+    const carrier_service = new shopify.api.rest.CarrierService({ session: res.locals.shopify.session });
+    carrier_service.id = 66713190619;
+    carrier_service.name = "Fast Courier";
+    carrier_service.callback_url = "https://sodium-maintaining-anthropology-sony.trycloudflare.com/api/shipping-rates";
+    await carrier_service.save({
+      update: true,
+    });
+    res.status(200).send(carrier_service);
+  } catch (error) {
+    console.log("carrier-update=", error);
+  }
+
+});
+
+
+app.get("/api/orders", async (_req, res) => {
+  try {
+    const orders = await shopify.api.rest.Order.all({
+      session: res.locals.shopify.session,
+      status: "any",
+    });
+    res.status(200).send(orders);
+  } catch (error) {
+    console.log("orders=", error);
+  }
+});
+
+app.get("/api/order-metafields", async (_req, res) => {
+  try {
+    const session = res.locals.shopify.session;
+    const client = new shopify.api.clients.Graphql({ session });
+    const queryString = `{
+    orders(first: 80) {
+      edges {
+        node {
+          id
+          metafields(first: 10) {
+            edges {
+              node {
+                key
+                value
+              }
+            }
+          }
+        }
+      }
+    }
+  }`;
+
+    const data = await client.query({
+      data: queryString,
+    });
+    res.status(200).send(data);
+  } catch (error) {
+    console.log("order-metafields=", error);
+  }
+
+});
+
+app.post("/api/hold-orders", async (_req, res) => {
+  const { orderIds } = _req.body;
+  const session = res.locals.shopify.session;
+  var orders = [];
+  orderIds.forEach(async (id) => {
+    // const fulfillment_order = new shopify.api.rest.FulfillmentOrder({ session: res.locals.shopify.session });
+    // fulfillment_order.id = parseInt(id);
+    // await fulfillment_order.hold({
+    //   body: { "fulfillment_hold": { "reason": "inventory_out_of_stock", "reason_notes": "Not enough inventory to complete this work.", "fulfillment_order_line_items": [{ "id": "", "quantity": 1 }] } },
+    // });
+    const metafield = new shopify.api.rest.Metafield({
+      session: res.locals.shopify.session,
+    });
+    metafield.order_id = id;
+    metafield.namespace = "Order";
+    metafield.key = "fc_order_status";
+    metafield.type = "single_line_text_field";
+    metafield.value = "Hold";
+    await metafield.save({
+      update: true,
+    });
+
+    orders.push(metafield);
+  });
+  res.status(200).send(orders);
+});
+
+app.post("/api/book-orders", async (_req, res) => {
+  try {
+    const { orderIds, collectionDate } = _req.body;
+    const session = res.locals.shopify.session;
+    console.log("ress===", res)
+    console.log("locals===", res.locals)
+    console.log("shopify===", res.locals.shopify)
+    var orders = [];
+    orderIds.forEach(async (id) => {
+      // const fulfillment_order = new shopify.api.rest.FulfillmentOrder({ session: session });
+      // fulfillment_order.id = parseInt(id);
+      // await fulfillment_order.reschedule({
+      //   body: { "fulfillment_order": { "new_fulfill_at": collectionDate } },
+      // });
+      const order = new shopify.api.rest.Order({ session: session });
+      order.id = parseInt(id);
+      order.metafields = [
+        {
+          key: "fc_order_status",
+          value: "Booked for collection",
+          type: "single_line_text_field",
+          namespace: "Order",
+        },
+        {
+          key: "collection_date",
+          value: collectionDate,
+          type: "single_line_text_field",
+          namespace: "Order",
+        }
+      ];
+      await order.save({
+        update: true,
+      });
+
+      orders.push(order);
+    });
+    res.status(200).send(orders);
+  } catch (error) {
+    console.log("book-orders=", error)
+  }
+});
+
+app.get("/api/products", async (_req, res) => {
+  try {
+    const session = res.locals.shopify.session;
+    const client = new shopify.api.clients.Graphql({ session });
+    const queryString = `{
+      products(first: 30) {
+        edges {
+          node {
+            id
+            title
+            metafields(first: 10) {
+            edges {
+              node {
+                key
+                value
+              }
+            }
+          }        
+            variants(first: 10) {
+              edges {
+                node {
+                  id
+                  title
+                  price
+                  metafields(first: 10) {
+                    edges {
+                      node {
+                        key
+                        value
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }`;
+
+    const data = await client.query({
+      data: queryString,
+    });
+    res.status(200).send(data);
+  } catch (error) {
+    console.log("products==", error);
+  }
+});
+
+app.post("/api/set-order-metafields", async (_req, res) => {
+  try {
+    const { quoteId, orderHashId, orderId, carrierName } = _req.body;
+    const order = new shopify.api.rest.Order({ session: res.locals.shopify.session });
+    order.id = parseInt(orderId);
+    order.metafields = [
+      {
+        key: "quote_id",
+        value: quoteId,
+        type: "single_line_text_field",
+        namespace: "Order",
+      },
+      {
+        key: "order_hash_id",
+        value: orderHashId,
+        type: "single_line_text_field",
+        namespace: "Order",
+      },
+      {
+        key: "carrier_name",
+        value: carrierName,
+        type: "single_line_text_field",
+        namespace: "Order",
+      },
+    ];
+    await order.save({
+      update: true,
+    });
+    res.status(200).send(order);
+  } catch (error) {
+    console.log("set-order-metafields=", error);
+  }
+
+});
+
+app.get("/api/process-order/:orderId", async (_req, res) => {
+  try {
+    const orderId = _req.params.orderId;
+    const order = new shopify.api.rest.Order({ session: res.locals.shopify.session });
+    order.id = parseInt(orderId);
+    order.metafields = [
+      {
+        key: "fc_order_status",
+        value: "Processed",
+        type: "single_line_text_field",
+        namespace: "Order",
+      },
+    ];
+    await order.save({
+      update: true,
+    });
+    res.status(200).send(order);
+  } catch (error) {
+    console.log("process-order=", error);
+  }
+
+});
+
+app.get("/api/get-order/:orderId", async (_req, res) => {
+  try {
+    const orderId = _req.params.orderId;
+    const order = await shopify.api.rest.Order.find({
+      session: res.locals.shopify.session,
+      id: parseInt(orderId)
+    });
+    res.status(200).send(order);
+  } catch (error) {
+    console.log("get-order=", error);
+  }
+
+});
+
+app.get("/api/get-checkout/:checkoutToken", async (_req, res) => {
+  try {
+    const checkoutToken = _req.params.checkoutToken;
+    const checkout = await shopify.api.rest.Checkout.find({
+      session: res.locals.shopify.session,
+      token: checkoutToken,
+    });
+    res.status(200).send(checkout);
+  } catch (error) {
+    console.log("get-checkout=", error);
+  }
+
+});
+
+app.post("/api/carrier-service/delete", async (_req, res) => {
+  try {
+    await shopify.api.rest.CarrierService.delete({
+      session: res.locals.shopify.session,
+      id: 66098495707,
+    });
+  } catch (error) {
+    console.log("carrier-delete=", error);
+  }
+
 });
 
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
-app.use("/api/*", shopify.validateAuthenticatedSession())
+
 app.use("/*", shopify.ensureInstalledOnShop(), async (_req, res, _next) => {
   return res
     .status(200)

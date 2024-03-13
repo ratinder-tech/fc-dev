@@ -23,7 +23,7 @@ export function AddLocation(props) {
     const [tailLift, setTailLift] = useState("0");
     const [isDefaultLocation, setIsDefaultLocation] = useState("0");
     const [suburbs, setSuburbs] = useState([]);
-    const [tags, setTags] = useState([]);
+    const [tags, setTags] = useState(null);
     const [merchantTags, setMerchantTags] = useState([]);
     const [tagOptions, setTagOptions] = useState([]);
     const [freeShippingPoscodes, setFreeShippingPoscodes] = useState([]);
@@ -33,6 +33,7 @@ export function AddLocation(props) {
     const [suburbData, setSuburbData] = useState([]);
     const [openErrorModal, setOpenErrorModal] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [selectedTags, setSelectedTags] = useState([]);
 
     const buildingTypes = [{
         "value": "residential", "label": "Residential"
@@ -179,6 +180,7 @@ export function AddLocation(props) {
         // setFreeShippingPoscodes(location.free_shipping_postcodes);
         setLongitude(location.longitude);
         setLatitude(location.latitude);
+        getDefaultTags();
         // setSelectedSuburbValue(location.suburb + ', ' + location.postcode + " (" + location.state + ")");
     }
 
@@ -233,16 +235,13 @@ export function AddLocation(props) {
     const getDefaultTags = () => {
         if (props?.editLocation) {
             var tagValues = merchantTags.filter((element) => props?.editLocation?.tag?.includes(element.id));
-            var selectedTags = []
-
+            var tags = [];
             console.log("tagValues", tagValues);
             tagValues.map((val, key) => {
                 const tag = { "value": val.id, "label": val.name };
-
-                console.log("tag", tag);
-                selectedTags.push(tag);
+                tags.push(tag);
             })
-            return selectedTags;
+            setSelectedTags(tags);
         } else {
             return null
         }
@@ -275,16 +274,27 @@ export function AddLocation(props) {
         })
     }
 
-    const handleTagChange = (value) => {
-        var tagsValue = tags.filter((element) => element != value);
-        setTags(tagsValue);
-        setTagOptions(value);
-    }
+    // const handleTagChange = (value) => {
+    //     console.log("changeValue=", value);
+    //     // var tagsValue = tags.filter((element) => element != value);
+    //     // setTags(tagsValue);
+    //     const valueExist = selectedTags.find(element => element.value == value[0].value);
+    //     if (valueExist) {
+    //         selectedTags.splice(value);
+    //     } else {
+    //         setSelectedTags([...selectedTags, value])
+    //     }
+    // }
 
     const handleTagCreate = (value) => {
         const newOption = { "value": value, "label": value };
-        setTags([...tags, value]);
-        setTagOptions([...tagOptions, newOption]);
+        if (tags !== null) {
+            setTags([...tags, value]);
+        } else {
+            setTags([value]);
+        }
+
+        setTagOptions([...tagOptions, { ...newOption }]);
     }
 
     const handleShippingCodesChange = (value) => {
@@ -415,7 +425,7 @@ export function AddLocation(props) {
                         <div className="input-lebel1">
                             <span> Default&nbsp;</span><span style={{ color: "red" }}> *</span>
                         </div>
-                        <Select options={tailLiftList} onChange={(e) => setIsDefaultLocation(e.value)} defaultValue={getDefaultLocation()} />
+                        <Select options={tailLiftList} onChange={(e) => setIsDefaultLocation(e.value)} defaultValue={getDefaultLocation()} isDisabled={props.editLocation && isDefaultLocation == "1"} />
                     </div>
 
                     <div className="input-container1">
@@ -426,9 +436,9 @@ export function AddLocation(props) {
                             isClearable
                             isMulti
                             options={tagOptions}
-                            value={getDefaultTags()}
+                            value={selectedTags}
                             onCreateOption={(value) => handleTagCreate(value)}
-                            onChange={(value) => handleTagChange(value)}
+                            // onChange={(value) => handleTagChange(value)}
                         />
                     </div>
                 </div>

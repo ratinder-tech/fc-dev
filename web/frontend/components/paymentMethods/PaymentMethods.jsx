@@ -19,21 +19,31 @@ export function PaymentMethods(props) {
     const [isLoading, setIsLoading] = useState(false);
     const [openErrorModal, setOpenErrorModal] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [merchantDetails, setMerchantDetails] = useState(null);
 
     const fetch = useAuthenticatedFetch();
 
 
-    // const carriers = useAppQuery({
-    //     url: "/api/carrier-services",
-    //     reactQueryOptions: {
-    //         onSuccess: () => {
-    //             setIsLoading(false);
-    //         },
-    //     },
-    // });
-
-
-    // console.log("carriers", carriers);
+    const getMerchantDetails = async () => {
+        setIsLoading(true);
+        const accessToken = localStorage.getItem("accessToken");
+        const headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "request-type": process.env.REQUEST_TYPE,
+            "version": "3.1.1",
+            "Authorization": "Bearer " + accessToken
+        }
+        await axios.get(`${process.env.API_ENDPOINT}/api/wp/get_merchant`, { "headers": headers }).then(response => {
+            console.log("merchantDetials", response.data.data);
+            setMerchantDetails(response.data.data);
+            setSelectedMethod(response.data.data.payment_method);
+            setIsLoading(false);
+        }).catch(error => {
+            console.log(error);
+            setIsLoading(false);
+        })
+    }
 
     const savePaymentMethod = async () => {
 
@@ -163,7 +173,6 @@ export function PaymentMethods(props) {
         }
         axios.get(`${process.env.API_ENDPOINT}/api/wp/payment_method`, { "headers": headers }).then(response => {
             setPaymentMethods(response.data.data);
-            setSelectedMethod(props.merchantDetails.payment_method)
             setIsLoading(false);
         }).catch(error => {
             setIsLoading(false);
@@ -171,21 +180,6 @@ export function PaymentMethods(props) {
         })
     }
 
-
-    // const getShippingRates = () => {
-    //     const payload = {
-    //         "name": "Fast Courier"
-    //     }
-    //     const headers = {
-    //         'Content-Type': 'application/json',
-    //     }
-    //     axios.get('https://generators-scene-afghanistan-ice.trycloudflare.com/api/shipping-rates').then(response => {
-    //         console.log("shipping-rates", response)
-    //     }).catch(error => {
-    //         setIsLoading(false);
-    //         console.log(error);
-    //     })
-    // }
 
     function handleCardNumberChange(e) {
         const input = e.target.value.replace(/\D/g, ''); // Remove non-digit characters
@@ -205,6 +199,7 @@ export function PaymentMethods(props) {
 
     useEffect(() => {
         getPaymentMethods();
+        getMerchantDetails();
         // getShippingRates();
     }, []);
     return (

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, redirect, useNavigate } from "react-router-dom";
-import { MerchantBillingDetails } from "../components/merchantBillingDetails";
+// import { MerchantBillingDetails } from "../components/merchantBillingDetails";
 import "./style.css";
 import { Configuration } from "../components/configuration";
 import { NewOrders } from "../components/newOrders";
@@ -9,7 +9,7 @@ import { ProcessedOrders } from "../components/processedOrders";
 import { HoldOrders } from "../components/holdOrders";
 import { RejectedOrders } from "../components/rejectedOrders/RejectedOrders";
 import { FallbackOrders } from "../components/fallbackOrders";
-import { OrderDetails } from "../components/orderDetails/OrderDetails";
+// import { OrderDetails } from "../components/orderDetails/OrderDetails";
 
 export default function HomePage(props) {
   const [activeNavItem, setActiveNavItem] = useState("configuration");

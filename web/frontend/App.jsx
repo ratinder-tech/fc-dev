@@ -1,26 +1,33 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { NavigationMenu } from "@shopify/app-bridge-react";
+import { useEffect, useState } from "react";
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { fab } from '@fortawesome/free-brands-svg-icons';
-import HomePage from "./pages";
-import { Login } from "./components/login";
-import { Signup } from "./components/signup";
-import { ForgotPassword } from "./components/forgotPassword";
-import { MerchantBillingDetails } from "./components/merchantBillingDetails";
-import "./App.css";
-import { useEffect, useState } from "react";
 import {
   AppBridgeProvider,
   QueryProvider,
   PolarisProvider,
 } from "./components";
+import HomePage from "./pages";
+import { Login } from "./components/login";
+import { Signup } from "./components/signup";
 import { OrderDetails } from "./components/orderDetails/OrderDetails";
+import { ForgotPassword } from "./components/forgotPassword";
+import { MerchantBillingDetails } from "./components/merchantBillingDetails";
+import "./App.css";
 
 export default function App() {
+  // Any .tsx or .jsx files in /pages will become a route
+  // See documentation for <Routes /> for more info
+  // const pages = import.meta.globEager("./pages/**/!(*.test.[jt]sx)*.([jt]sx)");
+  // const { t } = useTranslation();
+  library.add(fas, fab);
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userDetails, setUserDetails] = useState(null);
   const [isStaging, setIsStaging] = useState(true);
-  library.add(fas, fab);
 
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
@@ -28,7 +35,6 @@ export default function App() {
   });
 
   return (
-
     <PolarisProvider>
       <BrowserRouter>
         <AppBridgeProvider>

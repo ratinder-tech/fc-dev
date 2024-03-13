@@ -3,36 +3,61 @@ import axios from 'axios';
 import "./style.css";
 import { useState, useEffect } from "react";
 import { Loader } from "../loader";
+import { ErrorModal } from "../errorModal";
 
 export function Login(props) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [openErrorModal, setOpenErrorModal] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
     const navigate = useNavigate();
 
+    function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const isValid = emailRegex.test(email);
+        return isValid;
+    }
+
+    function validations() {
+        if(email == "" || !isValidEmail(email)) {
+
+        }
+        return true;
+    }
+
     const login = () => {
-        setIsLoading(true);
-        const payload = {
-            "email": email,
-            "password": password,
-        }
-        const headers = {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "request-type": process.env.REQUEST_TYPE,
-            "version": "3.1.1",
-        }
-        axios.post(`${process.env.API_ENDPOINT}/api/wp/login`, payload, { "headers": headers }).then(response => {
-            props.setUserDetails(response.data.merchant);
-            localStorage.setItem("accessToken", response.data.merchant.access_token);
-            localStorage.setItem("merchantDomainId", response.data.merchant.id);
-            navigate('/homepage');
-            setIsLoading(false);
-        }).catch(error => {
-            setIsLoading(false);
+        try {
+            const isValid = validations();
+            if (isValid) {
+                setIsLoading(true);
+                const payload = {
+                    "email": email,
+                    "password": password,
+                }
+                const headers = {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                    "request-type": process.env.REQUEST_TYPE,
+                    "version": "3.1.1",
+                }
+                axios.post(`${process.env.API_ENDPOINT}/api/wp/login`, payload, { "headers": headers }).then(response => {
+                    props.setUserDetails(response.data.merchant);
+                    localStorage.setItem("accessToken", response.data.merchant.access_token);
+                    localStorage.setItem("merchantDomainId", response.data.merchant.id);
+                    navigate('/homepage');
+                    setIsLoading(false);
+                }).catch(error => {
+                    setIsLoading(false);
+                    console.log(error);
+                })
+            } else {
+                setOpenErrorModal(true);
+            }
+        } catch (error) {
             console.log(error);
-        })
+        }
     }
 
     useEffect(() => {
@@ -45,6 +70,7 @@ export function Login(props) {
     return (
         <div className="main-container">
             {isLoading && <Loader />}
+            <ErrorModal showModal={openErrorModal} message={errorMessage} onConfirm={() => setOpenErrorModal(false)} />
             <div className="logo-image">
                 <img src="https://portal-staging.fastcourier.com.au/assets/media/logos/fast-courier-dark.png" />
             </div>
