@@ -37,6 +37,7 @@ export function PickupLocations(props) {
         })
     }
 
+   
 
     const getMerchantTags = () => {
         setIsLoading(true);
@@ -95,15 +96,23 @@ export function PickupLocations(props) {
         setShowDeleteModal(true);
     }
 
-    // function getTagName(ids) {
-    //     var tags = merchantTags.filter((element) => ids.includes(element.id));
+    function getTagNames(ids = "") {
+      if (!ids) {
+        return "";
+      }
+    //   console.log(ids,"ids")
+    //   ids = JSON.parse(ids);
+    //   console.log(ids,"ids")
+      ids = ids.split(",").map(Number);
 
-    //     var tagNames = [];
-    //     for (const tag of tags) {
-    //         tagNames.push(tag.name);
-    //     }
-    //     return tagNames;
-    // }
+      var tags = merchantTags.filter((element) => ids.includes(element.id));
+        // console.log(tags,"tags")
+      var tagNames = [];
+      for (const tag of tags) {
+        tagNames.push(tag.name);
+      }
+      return tagNames.join(", ");
+    }
 
     return (
         <div className="pickup-locations">
@@ -146,7 +155,7 @@ export function PickupLocations(props) {
                             <td>{element.phone}</td>
                             <td>{element.email}</td>
                             <td>{element.suburb}, {element.postcode}, {element.state}</td>
-                            <td>{element.tag == "[]" ? "" : element.tag}</td>
+                            <td>{element.tag == "[]" ? "" : getTagNames(element.tag)}</td>
                             {/* <td>{element.tag == "[]" ? "" : getTagName(element.tag)}</td> */}
                             <td>{element.free_shipping_postcodes}</td>
                             <td>{element.is_default == 1 ? "Yes" : "No"}</td>

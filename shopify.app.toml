@@ -2,7 +2,7 @@
 
 name = "fc-dev"
 client_id = "fba0237f7f8084edf2aa919f82b4a68d"
-application_url = "https://allan-realtors-galleries-angle.trycloudflare.com"
+application_url = "https://ag-anyway-trained-days.trycloudflare.com"
 embedded = true
 
 [access_scopes]
@@ -11,10 +11,10 @@ scopes = "read_all_orders,read_checkouts,read_orders,read_products,read_shipping
 
 [auth]
 redirect_urls = [
-  "https://allan-realtors-galleries-angle.trycloudflare.com/auth/callback",
-  "https://allan-realtors-galleries-angle.trycloudflare.com/auth/shopify/callback",
-  "https://allan-realtors-galleries-angle.trycloudflare.com/api/auth/callback",
-  "https://allan-realtors-galleries-angle.trycloudflare.com/.shopify/graphiql/auth/callback"
+  "https://ag-anyway-trained-days.trycloudflare.com/auth/callback",
+  "https://ag-anyway-trained-days.trycloudflare.com/auth/shopify/callback",
+  "https://ag-anyway-trained-days.trycloudflare.com/api/auth/callback",
+  "https://ag-anyway-trained-days.trycloudflare.com/.shopify/graphiql/auth/callback"
 ]
 
 [webhooks]

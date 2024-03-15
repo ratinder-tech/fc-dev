@@ -165,8 +165,8 @@ export function AddLocation(props) {
           state: selectedState,
           postcode: selectedPostcode,
           is_default: isDefaultLocation,
-          tag: tags,
-          free_shipping_postcodes: selectedFreeShippingCodes,
+          tag: selectedTags.map((element) => element.value),
+          free_shipping_postcodes: ""  ??selectedFreeShippingCodes,
           merchant_domain_id: merchantDomainId,
           tail_lift: tailLift,
           longitude: "144.956776",
@@ -220,7 +220,7 @@ export function AddLocation(props) {
     // setFreeShippingPoscodes(location.free_shipping_postcodes);
     setLongitude(location.longitude);
     setLatitude(location.latitude);
-    getDefaultTags();
+    
     // setSelectedSuburbValue(location.suburb + ', ' + location.postcode + " (" + location.state + ")");
   };
 
@@ -303,16 +303,18 @@ export function AddLocation(props) {
       : null;
     return defaultValue;
   };
-
-  const getDefaultTags = () => {
-    if (props?.editLocation) {
-      var tagValues = merchantTags.filter((element) =>
-        props?.editLocation?.tag?.includes(element.id)
+console.log(tagOptions,'tagOptions')
+  const getDefaultTags = (_merchantTags) => {
+     
+    if (props?.editLocation) { 
+      let selected_tags=props.editLocation?.tag? props.editLocation?.tag?.split(",")?.map(Number) : []
+      
+      var tagValues = _merchantTags.filter((element) =>
+      selected_tags?.includes(element.id)
       );
-      var tags = [];
-      console.log("tagValues", tagValues);
+      var tags = []; 
       tagValues.map((val, key) => {
-        const tag = { value: val.id, label: val.name };
+        const tag = { value: val.name, label: val.name };
         tags.push(tag);
       });
       setSelectedTags(tags);
@@ -322,65 +324,79 @@ export function AddLocation(props) {
   };
 
   const getMerchantTags = () => {
-    setIsLoading(true);
-    const accessToken = localStorage.getItem("accessToken");
-    const merchantDomainId = localStorage.getItem("merchantDomainId");
-    const headers = {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      "request-type": process.env.REQUEST_TYPE,
-      version: "3.1.1",
-      Authorization: "Bearer " + accessToken,
-    };
-    axios
-      .get(
-        `${process.env.API_ENDPOINT}/api/wp/merchant_location_tags/${merchantDomainId}`,
-        { headers: headers }
-      )
-      .then((response) => {
-        setIsLoading(false);
-        // setPickupLocations(response.data.data);
-        setMerchantTags(response.data.data);
-        var tagsValue = [];
-        response.data.data.map((element) => {
-          var item = { value: element.name, label: element.name };
-          tagsValue.push(item);
+    return new Promise((resolve, reject) => {
+      setIsLoading(true);
+      const accessToken = localStorage.getItem("accessToken");
+      const merchantDomainId = localStorage.getItem("merchantDomainId");
+      const headers = {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "request-type": process.env.REQUEST_TYPE,
+        version: "3.1.1",
+        Authorization: "Bearer " + accessToken,
+      };
+  
+      axios
+        .get(
+          `${process.env.API_ENDPOINT}/api/wp/merchant_location_tags/${merchantDomainId}`,
+          { headers: headers }
+        )
+        .then( (response) => {
+          setIsLoading(false);
+          setMerchantTags(response.data.data);
+          var tagsValue = [];
+          response.data.data.map((element) => {
+            var item = { value: element.name, label: element.name };
+            tagsValue.push(item);
+          });
+          setTagOptions(tagsValue);
+          resolve(response.data.data);
+        })
+        .catch((error) => {
+          setIsLoading(false);
+          console.log(error);
+          reject(error);
         });
-        setTagOptions(tagsValue);
-      })
-      .catch((error) => {
-        setIsLoading(false);
-        console.log(error);
-      });
+    });
   };
 
-  const handleTagChange = (value) => {
-    console.log("changeValue=", value);
-    // var tagsValue = tags.filter((element) => element != value);
-    // setTags(tagsValue);
-    const valueExist = selectedTags.find(
-      (element) => element.value == value[0].value
+  const handleTagChange = (newValueArray) => {
+     
+     
+    const valueExistsIndex = selectedTags.findIndex(
+      (element) => element.value == newValueArray[0].value
     );
-    if (valueExist) {
-      selectedTags.splice(value);
+    let updated_selected_tags=[...selectedTags]
+    if (valueExistsIndex>-1) {
+      updated_selected_tags.splice(valueExistsIndex,1);
     } else {
-      setSelectedTags([...selectedTags, value]);
+      updated_selected_tags.push({...newValueArray[0]}); 
     }
+    setSelectedTags(updated_selected_tags);
   };
 
-  const handleTagCreate = (value) => {
-    const newOption = { value: value, label: value };
+  const handleTagCreate = (newValueString) => {
+   
+    const newOption = { value: newValueString, label: newValueString };
+    // check if Tags Already Exist
+    const tagsExist = tagOptions.find(
+      (element) => element.value == newValueString
+    );
+    if (tagsExist) {
+      return;
+    }
     if (tags !== null) {
-      setTags([...tags, value]);
+      setTags([...tags, newValueString]);
     } else {
-      setTags([value]);
+      setTags([newValueString]);
     }
-
     setTagOptions([...tagOptions, { ...newOption }]);
+    // Set Selected Tag
+    setSelectedTags([...selectedTags, { ...newOption }]);
   };
-
+  
   const handleShippingCodesChange = (value) => {
-    console.log("shippingcode==", value);
+    
     // var shippingCodeValue = freeShippingPoscodes.filter(
     //   (element) => element != value
     // );
@@ -404,13 +420,15 @@ export function AddLocation(props) {
 
   useEffect(() => {
     getSuburbs();
-    getMerchantTags();
-    // getDefaultTags();
-    console.log("editLocation=", props.editLocation);
-    if (props.editLocation) {
-      setEditLocationData(props.editLocation);
-    }
-  }, []);
+    getMerchantTags().then((merchant_tags)=>{
+      if (props.editLocation) {
+        setEditLocationData(props.editLocation);
+        getDefaultTags(merchant_tags);
+      }
+
+    });
+     
+  }, [ ]);
   return (
     <div className="add-location-modal">
       {isLoading && <Loader />}
@@ -624,9 +642,38 @@ export function AddLocation(props) {
               isClearable
               isMulti
               options={tagOptions}
-              value={selectedTags}
-              onCreateOption={(value) => handleTagCreate(value)}
-              onChange={(value) => handleTagChange(value)}
+                value={selectedTags}
+              
+              // onCreateOption={(value) => {
+                
+              //   console.log(value,'onCreateOption')
+              //   handleTagCreate(value)}}
+                onChange={(value) =>{  
+                setSelectedTags(value)
+                   
+                // handleTagChange(value)
+                if(value.length>0){
+                //  Add the unique tags which are not in Tag options
+                let updated_tagOptions=[...tagOptions]
+                value.map((tag)=>{
+                  const tagExist=updated_tagOptions.find((element)=>element.value===tag.value)
+                  if(!tagExist){
+                    const keyToDelete = '__isNew__';
+                    if (tag.hasOwnProperty(keyToDelete)) {
+                      delete tag[keyToDelete];
+                    }
+                    updated_tagOptions.push(tag)
+                  }
+                })
+                setTagOptions(updated_tagOptions)
+
+
+                 
+                
+                }
+              
+              }}
+                
             />
           </div>
         </div>
