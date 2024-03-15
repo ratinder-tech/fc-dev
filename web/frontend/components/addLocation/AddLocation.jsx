@@ -5,6 +5,7 @@ import "./style.css";
 import { useState, useEffect } from "react";
 import { Loader } from "../loader";
 import { ErrorModal } from "../errorModal";
+import Papa from "papaparse";
 
 export function AddLocation(props) {
   const [isLoading, setIsLoading] = useState(false);
@@ -151,6 +152,10 @@ export function AddLocation(props) {
         setIsLoading(true);
         const accessToken = localStorage.getItem("accessToken");
         const merchantDomainId = localStorage.getItem("merchantDomainId");
+        const freeShippingCodes = selectedFreeShippingCodes.map(
+          (element) => element.value
+        );
+        console.log("freeShippingCodes=", freeShippingCodes);
         const payload = {
           location_name: locationName,
           first_name: firstName,
@@ -166,7 +171,7 @@ export function AddLocation(props) {
           postcode: selectedPostcode,
           is_default: isDefaultLocation,
           tag: selectedTags.map((element) => element.value),
-          free_shipping_postcodes: ""  ??selectedFreeShippingCodes,
+          free_shipping_postcodes: JSON.stringify(freeShippingCodes),
           merchant_domain_id: merchantDomainId,
           tail_lift: tailLift,
           longitude: "144.956776",
@@ -216,13 +221,18 @@ export function AddLocation(props) {
     setSelectedSuburb(location.suburb);
     setTailLift(location.tail_lift);
     setIsDefaultLocation(location.is_default);
-    // setTags(location.tags);
-    // setFreeShippingPoscodes(location.free_shipping_postcodes);
-    setLongitude(location.longitude);
+    const freeShippingCodes = JSON.parse(location.free_shipping_postcodes).map(
+      (element) => {
+        return { value: element, label: element };
+      }
+    );
+
+    setSelectedFreeShippingCodes(freeShippingCodes);
+    setFreeShippingPoscodeOptions(freeShippingCodes);
+   setLongitude(location.longitude);
     setLatitude(location.latitude);
-    
-    // setSelectedSuburbValue(location.suburb + ', ' + location.postcode + " (" + location.state + ")");
-  };
+    getDefaultTags();
+   };
 
   const getDefaultBuildingType = () => {
     var defaultValue = props.editLocation
@@ -404,19 +414,20 @@ console.log(tagOptions,'tagOptions')
     // setFreeShippingPoscodeOptions(value);
   };
 
-  const handleShippingCodesCreate = (value) => {
-    const newOption = { value: value, label: value };
-    if (freeShippingPoscodes !== null) {
-      setFreeShippingPoscodes([...freeShippingPoscodes, value]);
-    } else {
-      setFreeShippingPoscodes([value]);
-    }
-
-    setFreeShippingPoscodeOptions([
-      ...freeShippingPoscodeOptions,
-      { ...newOption },
-    ]);
-  };
+  const handleCsvInputChange = (e) => {
+    Papa.parse(e.target.files[0], {
+      header: true,
+      skipEmptyLines: false,
+      complete: async (result) => {
+        const importData = result.data;
+        const postcodes = importData.map((element) => element.Postcodes);
+        const selectedShippingCodes = postcodes.map((element) => {
+          return { value: element, label: element };
+        });
+        setSelectedFreeShippingCodes(selectedShippingCodes);
+      },
+    });
+ };
 
   useEffect(() => {
     getSuburbs();
@@ -687,8 +698,8 @@ console.log(tagOptions,'tagOptions')
               isMulti
               options={freeShippingPoscodeOptions}
               value={selectedFreeShippingCodes}
-              onCreateOption={(value) => handleShippingCodesCreate(value)}
-              onChange={(value) => handleShippingCodesChange(value)}
+              // onCreateOption={(value) => handleShippingCodesCreate(value)}
+              onChange={(value) => setSelectedFreeShippingCodes(value)}
             />
           </div>
           <div className="input-container1">
@@ -705,8 +716,13 @@ console.log(tagOptions,'tagOptions')
         </div>
         <div className="choose-file-row">
           <div className="input-field">
-            <input type="file" className="choose-file" />
-          </div>
+            <input
+              type="file"
+              className="choose-file"
+              accept=".csv"
+              onChange={(e) => handleCsvInputChange(e)}
+            />
+         </div>
           <div className="sample-download">
             <a
               href="http://fc-new.vuwork.com/wp-content/plugins/fast-courier-shipping-freight/views/sample/sample.csv"

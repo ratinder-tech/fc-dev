@@ -326,7 +326,7 @@ export function MerchantBillingDetails(props) {
           billingState: billingState,
           billingPostcode: billingPostcode,
           conditionalPrice: conditionalValue,
-          courierPreferences: activeCouriers,
+          courierPreferences: selectedCourierPref,
           bookingPreference: bookingPreference,
           isInsurancePaidByCustomer: isInsurancePaidByCustomer ? 1 : 0,
           fallbackAmount: fallbackAmount,
