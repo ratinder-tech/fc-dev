@@ -1,20 +1,24 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-name = "fc-dev"
-client_id = "fba0237f7f8084edf2aa919f82b4a68d"
-application_url = "https://ag-anyway-trained-days.trycloudflare.com"
+client_id = "6b4c7f563a14b50c24714b5687ede505"
+name = "fc-dev-1"
+application_url = "https://rd-means-condition-monster.trycloudflare.com"
 embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "test-development-fc-app.myshopify.com"
+include_config_on_deploy = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_all_orders,read_checkouts,read_orders,read_products,read_shipping,unauthenticated_read_checkouts,unauthenticated_write_checkouts,write_checkouts,write_orders,write_products,write_shipping"
+scopes = "read_checkouts,read_orders,read_products,read_shipping,unauthenticated_read_checkouts,unauthenticated_write_checkouts,write_checkouts,write_orders,write_products,write_shipping"
 
 [auth]
 redirect_urls = [
-  "https://ag-anyway-trained-days.trycloudflare.com/auth/callback",
-  "https://ag-anyway-trained-days.trycloudflare.com/auth/shopify/callback",
-  "https://ag-anyway-trained-days.trycloudflare.com/api/auth/callback",
-  "https://ag-anyway-trained-days.trycloudflare.com/.shopify/graphiql/auth/callback"
+  "https://rd-means-condition-monster.trycloudflare.com/auth/callback",
+  "https://rd-means-condition-monster.trycloudflare.com/auth/shopify/callback",
+  "https://rd-means-condition-monster.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
@@ -22,7 +26,3 @@ api_version = "2024-01"
 
 [pos]
 embedded = false
-
-[build]
-automatically_update_urls_on_dev = true
-dev_store_url = "test-development-fc-app.myshopify.com"

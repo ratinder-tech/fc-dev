@@ -184,22 +184,22 @@ export function NewOrders(props) {
 
 
 
-  // useEffect(async () => {
-  //   var filteredData = [];
-  //   filteredData = await orders?.filter((item) => {
-  //     let orderMatch = true
-  //     if (startDate != "") {
-  //       orderMatch = getFormattedDate(item.created_at) >= startDate;
-  //     }
-  //     if (endDate != "") {
-  //       orderMatch = getFormattedDate(item.created_at) <= endDate;
-  //     }
-  //     return orderMatch;
-  //   });
-  //   if (filteredData != undefined) {
-  //     setFilteredOrders(filteredData);
-  //   }
-  // }, [startDate, endDate]);
+  useEffect(async () => {
+    var filteredData = [];
+    filteredData = await orders?.filter((item) => {
+      let orderMatch = true
+      if (startDate != "") {
+        orderMatch = getFormattedDate(item.created_at) >= startDate;
+      }
+      if (endDate != "") {
+        orderMatch = getFormattedDate(item.created_at) <= endDate;
+      }
+      return orderMatch;
+    });
+    if (filteredData != undefined) {
+      setFilteredOrders(filteredData);
+    }
+  }, [startDate, endDate]);
 
   const selectOrder = (e) => {
     const orderIds = selectedOrders.includes(e.target.value)
@@ -253,7 +253,13 @@ export function NewOrders(props) {
       }
       const selectedOrderDetails = orders?.filter((element) => selectedOrders.includes(`${element.id}`));
 
-      
+      console.log("selectedOrders", selectedOrders);
+
+      console.log("selectedOrderDetails", selectedOrderDetails);
+
+      console.log("setDefaultLocation", defaultLocation);
+
+
 
       var bookOrders = [];
       for (const element of selectedOrderDetails) {
@@ -460,39 +466,17 @@ export function NewOrders(props) {
         <div className="d-flex align-items-end  ">
           <button className="fc-yellow-btn pointer"
             onClick={() => {
-               
               const filteredOrders = allNewOrders?.filter((element) => {
-                // Convert order date to seconds
-                const orderDate = new Date(element.created_at).getTime() / 1000;
-            
-                // Convert start date to seconds (00:00 AM)
+                const orderDate = new Date(element.created_at);
                 const startDate = new Date(filterData.startDate);
-                startDate.setHours(0, 0, 0, 0);
-                const startDateInSeconds = startDate.getTime() / 1000;
-            
-                // Convert end date to seconds (11:59 PM)
                 const endDate = new Date(filterData.endDate);
-                endDate.setHours(23, 59, 59, 999);
-                const endDateInSeconds = endDate.getTime() / 1000;
-            
-                // Check if order date is within the specified range
-                const orderDateCheck = (filterData.startDate !== "" && filterData.endDate !== "")
-                    ? (orderDate >= startDateInSeconds && orderDate <= endDateInSeconds)
-                    : true;
-            
-                // Check if order ID matches the filter
-                const orderIdCheck = (filterData.orderId !== "")
-                    ? element.order_number.toString().includes(filterData.orderId.toString())
-                    : true;
-            
-                // Return true only if both checks pass
+                const orderDateCheck =
+                  (filterData.startDate !== "" && filterData.endDate !== "") ? (orderDate >= startDate && orderDate <= endDate) : true;
+                const orderIdCheck = (filterData.orderId !== "") ? element.order_number.toString().includes(filterData.orderId.toString()) : true;
+
                 return orderDateCheck && orderIdCheck;
-            });
-            
-            // Set the filtered orders
-            setOrders(filteredOrders);
-            
-            
+              });
+              setOrders(filteredOrders);
             }}
 
           >Filter</button>

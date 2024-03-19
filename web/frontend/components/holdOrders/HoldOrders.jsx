@@ -179,28 +179,17 @@ export function HoldOrders() {
         <div className="d-flex align-items-end  ">
         <button className="fc-yellow-btn pointer"
         onClick={()=>{ 
-           
             const filteredOrders = allHoldOrders?.filter((element) => {
-              const orderDate = new Date(element.created_at);
-              const startDate = new Date(filterData.startDate);
-              const endDate = new Date(filterData.endDate);
-           
-              startDate.setHours(0, 0, 0, 0); 
-              endDate.setHours(23, 59, 59, 999);
-          
-              const orderDateCheck = (filterData.startDate !== "" && filterData.endDate !== "")
-                  ? (orderDate >= startDate && orderDate <= endDate)
-                  : true;
-          
-              const orderIdCheck = (filterData.orderId !== "")
-                  ? element.order_number.toString().includes(filterData.orderId.toString())
-                  : true;
-          
-              return orderDateCheck && orderIdCheck;
-          });
-          
-          setOrders(filteredOrders);
-          
+                const orderDate = new Date(element.created_at);
+                const startDate = new Date(filterData.startDate);
+                const endDate = new Date(filterData.endDate);
+                const orderDateCheck =
+                  (filterData.startDate !== "" && filterData.endDate !== "") ? (orderDate >= startDate && orderDate <= endDate) :true;
+                const orderIdCheck =(filterData.orderId !=="")? element.order_number.toString().includes(filterData.orderId.toString()) :true; 
+                   
+                return orderDateCheck && orderIdCheck;
+            });
+            setOrders(filteredOrders);
         }}
         
         >Filter</button>

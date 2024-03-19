@@ -170,7 +170,7 @@ export function AddLocation(props) {
           state: selectedState,
           postcode: selectedPostcode,
           is_default: isDefaultLocation,
-          tag: selectedTags.map((element) => element.value),
+          tag: tags,
           free_shipping_postcodes: JSON.stringify(freeShippingCodes),
           merchant_domain_id: merchantDomainId,
           tail_lift: tailLift,
@@ -229,10 +229,10 @@ export function AddLocation(props) {
 
     setSelectedFreeShippingCodes(freeShippingCodes);
     setFreeShippingPoscodeOptions(freeShippingCodes);
-   setLongitude(location.longitude);
+    setLongitude(location.longitude);
     setLatitude(location.latitude);
     getDefaultTags();
-   };
+  };
 
   const getDefaultBuildingType = () => {
     var defaultValue = props.editLocation
@@ -313,16 +313,17 @@ export function AddLocation(props) {
       : null;
     return defaultValue;
   };
-console.log(tagOptions,'tagOptions')
+  console.log(tagOptions, "tagOptions");
   const getDefaultTags = (_merchantTags) => {
-     
-    if (props?.editLocation) { 
-      let selected_tags=props.editLocation?.tag? props.editLocation?.tag?.split(",")?.map(Number) : []
-      
+    if (props?.editLocation) {
+      let selected_tags = props.editLocation?.tag
+        ? props.editLocation?.tag?.split(",")?.map(Number)
+        : [];
+
       var tagValues = _merchantTags.filter((element) =>
-      selected_tags?.includes(element.id)
+        selected_tags?.includes(element.id)
       );
-      var tags = []; 
+      var tags = [];
       tagValues.map((val, key) => {
         const tag = { value: val.name, label: val.name };
         tags.push(tag);
@@ -345,13 +346,13 @@ console.log(tagOptions,'tagOptions')
         version: "3.1.1",
         Authorization: "Bearer " + accessToken,
       };
-  
+
       axios
         .get(
           `${process.env.API_ENDPOINT}/api/wp/merchant_location_tags/${merchantDomainId}`,
           { headers: headers }
         )
-        .then( (response) => {
+        .then((response) => {
           setIsLoading(false);
           setMerchantTags(response.data.data);
           var tagsValue = [];
@@ -371,22 +372,19 @@ console.log(tagOptions,'tagOptions')
   };
 
   const handleTagChange = (newValueArray) => {
-     
-     
     const valueExistsIndex = selectedTags.findIndex(
       (element) => element.value == newValueArray[0].value
     );
-    let updated_selected_tags=[...selectedTags]
-    if (valueExistsIndex>-1) {
-      updated_selected_tags.splice(valueExistsIndex,1);
+    let updated_selected_tags = [...selectedTags];
+    if (valueExistsIndex > -1) {
+      updated_selected_tags.splice(valueExistsIndex, 1);
     } else {
-      updated_selected_tags.push({...newValueArray[0]}); 
+      updated_selected_tags.push({ ...newValueArray[0] });
     }
     setSelectedTags(updated_selected_tags);
   };
 
   const handleTagCreate = (newValueString) => {
-   
     const newOption = { value: newValueString, label: newValueString };
     // check if Tags Already Exist
     const tagsExist = tagOptions.find(
@@ -404,9 +402,8 @@ console.log(tagOptions,'tagOptions')
     // Set Selected Tag
     setSelectedTags([...selectedTags, { ...newOption }]);
   };
-  
+
   const handleShippingCodesChange = (value) => {
-    
     // var shippingCodeValue = freeShippingPoscodes.filter(
     //   (element) => element != value
     // );
@@ -427,19 +424,17 @@ console.log(tagOptions,'tagOptions')
         setSelectedFreeShippingCodes(selectedShippingCodes);
       },
     });
- };
+  };
 
   useEffect(() => {
     getSuburbs();
-    getMerchantTags().then((merchant_tags)=>{
+    getMerchantTags().then((merchant_tags) => {
       if (props.editLocation) {
         setEditLocationData(props.editLocation);
         getDefaultTags(merchant_tags);
       }
-
     });
-     
-  }, [ ]);
+  }, []);
   return (
     <div className="add-location-modal">
       {isLoading && <Loader />}
@@ -653,38 +648,33 @@ console.log(tagOptions,'tagOptions')
               isClearable
               isMulti
               options={tagOptions}
-                value={selectedTags}
-              
+              value={selectedTags}
               // onCreateOption={(value) => {
-                
+
               //   console.log(value,'onCreateOption')
               //   handleTagCreate(value)}}
-                onChange={(value) =>{  
-                setSelectedTags(value)
-                   
+              onChange={(value) => {
+                setSelectedTags(value);
+
                 // handleTagChange(value)
-                if(value.length>0){
-                //  Add the unique tags which are not in Tag options
-                let updated_tagOptions=[...tagOptions]
-                value.map((tag)=>{
-                  const tagExist=updated_tagOptions.find((element)=>element.value===tag.value)
-                  if(!tagExist){
-                    const keyToDelete = '__isNew__';
-                    if (tag.hasOwnProperty(keyToDelete)) {
-                      delete tag[keyToDelete];
+                if (value.length > 0) {
+                  //  Add the unique tags which are not in Tag options
+                  let updated_tagOptions = [...tagOptions];
+                  value.map((tag) => {
+                    const tagExist = updated_tagOptions.find(
+                      (element) => element.value === tag.value
+                    );
+                    if (!tagExist) {
+                      const keyToDelete = "__isNew__";
+                      if (tag.hasOwnProperty(keyToDelete)) {
+                        delete tag[keyToDelete];
+                      }
+                      updated_tagOptions.push(tag);
                     }
-                    updated_tagOptions.push(tag)
-                  }
-                })
-                setTagOptions(updated_tagOptions)
-
-
-                 
-                
+                  });
+                  setTagOptions(updated_tagOptions);
                 }
-              
               }}
-                
             />
           </div>
         </div>
@@ -722,7 +712,7 @@ console.log(tagOptions,'tagOptions')
               accept=".csv"
               onChange={(e) => handleCsvInputChange(e)}
             />
-         </div>
+          </div>
           <div className="sample-download">
             <a
               href="http://fc-new.vuwork.com/wp-content/plugins/fast-courier-shipping-freight/views/sample/sample.csv"

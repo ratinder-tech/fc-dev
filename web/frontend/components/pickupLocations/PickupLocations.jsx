@@ -97,9 +97,12 @@ export function PickupLocations(props) {
   };
 
   useEffect(() => {
+    if (showEditModal) {
+      return;
+    }
     getPickupLocations();
     getMerchantTags();
-  }, []);
+  }, [showEditModal]);
 
   function handleEditClick(location) {
     console.log("location==", location);

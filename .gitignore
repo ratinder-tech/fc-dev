@@ -1,6 +1,6 @@
 # Environment Configuration
-#.env
-#.env.*
+.env
+.env.*
 
 # Dependency directory
 node_modules
@@ -26,3 +26,5 @@ extensions/*/build
 
 # Node library SQLite database
 web/database.sqlite
+
+shopify.app.toml

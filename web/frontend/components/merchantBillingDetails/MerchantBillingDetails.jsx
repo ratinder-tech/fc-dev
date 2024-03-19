@@ -59,7 +59,7 @@ export function MerchantBillingDetails(props) {
   //     }
   // ]
 
-  const getMerchantDetails =  (categories) => {
+  const getMerchantDetails = (categories) => {
     setIsLoading(true);
     const accessToken = localStorage.getItem("accessToken");
     const headers = {
@@ -69,11 +69,11 @@ export function MerchantBillingDetails(props) {
       version: "3.1.1",
       Authorization: "Bearer " + accessToken,
     };
-     axios
+    axios
       .get(`${process.env.API_ENDPOINT}/api/wp/get_merchant`, {
         headers: headers,
       })
-      .then((response) => {  
+      .then((response) => {
         // getMerchant();
         setDefaultSuburb({
           value:
@@ -92,10 +92,12 @@ export function MerchantBillingDetails(props) {
             ")",
         });
         // Set default selected goods
-    let selected_value=JSON.parse(response.data.data.categories_of_goods);
-    
-    setSelectedGoods(categories.filter((item) => selected_value.includes(item.value)));
-      setMerchantDetails(response.data.data);
+        let selected_value = JSON.parse(response.data.data.categories_of_goods);
+
+        setSelectedGoods(
+          categories.filter((item) => selected_value?.includes(item.value))
+        );
+        setMerchantDetails(response.data.data);
         props.setMerchantDetails(response.data.data);
         setIsLoading(false);
       })
@@ -105,7 +107,7 @@ export function MerchantBillingDetails(props) {
       });
   };
 
-  const getCategoryOfGoods =   () => {
+  const getCategoryOfGoods = () => {
     setIsLoading(true);
     const accessToken = localStorage.getItem("accessToken");
     const headers = {
@@ -115,12 +117,11 @@ export function MerchantBillingDetails(props) {
       version: "3.1.1",
       Authorization: "Bearer " + accessToken,
     };
-      axios
+    axios
       .get(`${process.env.API_ENDPOINT}/api/wp/categories_of_goods`, {
         headers: headers,
       })
       .then((response) => {
-        
         var categories = [];
         response.data.data.forEach((element) => {
           var category = { value: element.id, label: element.category };
@@ -128,7 +129,7 @@ export function MerchantBillingDetails(props) {
         });
 
         setCategoryOfGoods(categories);
-        getMerchantDetails(categories); 
+        getMerchantDetails(categories);
         setIsLoading(false);
       })
       .catch((error) => {
@@ -164,7 +165,6 @@ export function MerchantBillingDetails(props) {
       },
     });
     const data = await response.json();
-    console.log("carrier", data.data);
     setCarrierServices(data.data);
   };
 
@@ -172,7 +172,6 @@ export function MerchantBillingDetails(props) {
     const values = selectedGoods?.map((element, i) => {
       return categoryOfGoods[element];
     });
-    console.log("values=", values);
     return values;
   }
 
@@ -195,12 +194,8 @@ export function MerchantBillingDetails(props) {
     setConditionalValue(merchant.conditional_price);
     setInsuranceAmount(merchant.insurance_amount);
     setIsDropOffTailLift(merchant.is_drop_off_tail_lift);
-
-    
-    const carriers = JSON.parse(merchant.courier_preferences); 
-
+    const carriers = JSON.parse(merchant.courier_preferences);
     setSelectedCourierPref(carriers);
-
     const tailLiftWeight = localStorage.getItem("tailLiftValue");
     setTailLiftValue(tailLiftWeight);
   }
@@ -296,7 +291,7 @@ export function MerchantBillingDetails(props) {
       setErrorMessage("Please select suburb.");
       return false;
     }
-    if (selectedGoods.length == 0 || selectedGoods===null) {
+    if (selectedGoods.length == 0 || selectedGoods === null) {
       setErrorMessage("Please select atleast 1 category of goods.");
       return false;
     }
@@ -306,7 +301,6 @@ export function MerchantBillingDetails(props) {
   const activateMerchant = async () => {
     try {
       const isValid = validations();
-      console.log("isValid=", isValid);
       if (isValid) {
         setIsLoading(true);
         const accessToken = localStorage.getItem("accessToken");
@@ -394,7 +388,6 @@ export function MerchantBillingDetails(props) {
         }),
       });
       const data = await response.json();
-      console.log("carrier", data);
       setIsLoading(false);
     } catch (err) {
       setIsLoading(false);
@@ -417,7 +410,7 @@ export function MerchantBillingDetails(props) {
     setSelectedGoods(categoryIds);
   }
 
-  useEffect(() => { 
+  useEffect(() => {
     getCouriers();
     getSuburbs();
     getCarriers();
@@ -432,9 +425,7 @@ export function MerchantBillingDetails(props) {
         message={errorMessage}
         onConfirm={() => setOpenErrorModal(false)}
       />
-      <div className="merchant-heading1"> 
-        Merchant Billing Details
-        </div>
+      <div className="merchant-heading1">Merchant Billing Details</div>
       <div className="input-row">
         <div className="input-container1">
           <div className="input-lebel1">
@@ -681,7 +672,7 @@ export function MerchantBillingDetails(props) {
                     id={courier.id}
                     value={courier.id}
                     onChange={(e) => handleCourierChange(e)}
-                    checked={selectedCourierPref.includes(
+                    checked={selectedCourierPref?.includes(
                       courier.id.toString()
                     )}
                   />
@@ -815,10 +806,10 @@ export function MerchantBillingDetails(props) {
             <span> Category of Goods Sold&nbsp;</span>
             <span style={{ color: "red" }}> *</span>
           </div>
-        
-          {categoryOfGoods.length > 0 && selectedGoods   && (
+
+          {categoryOfGoods.length > 0 && selectedGoods && (
             <Select
-              defaultValue={  selectedGoods}
+              defaultValue={selectedGoods}
               isMulti
               name="colors"
               options={categoryOfGoods}

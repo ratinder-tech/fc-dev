@@ -35,7 +35,7 @@ function checkHeadersForReauthorization(headers, app) {
     redirect.dispatch(
       Redirect.Action.REMOTE,
       authUrlHeader.startsWith("/")
-        ? `${window.location.host}${authUrlHeader}`
+        ? `https://${window.location.host}${authUrlHeader}`
         : authUrlHeader
     );
   }
