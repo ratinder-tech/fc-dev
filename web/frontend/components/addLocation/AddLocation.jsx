@@ -221,7 +221,7 @@ export function AddLocation(props) {
     setSelectedSuburb(location.suburb);
     setTailLift(location.tail_lift);
     setIsDefaultLocation(location.is_default);
-    const freeShippingCodes = JSON.parse(location.free_shipping_postcodes).map(
+    const freeShippingCodes = JSON.parse(location.free_shipping_postcodes)?.map(
       (element) => {
         return { value: element, label: element };
       }
@@ -231,7 +231,6 @@ export function AddLocation(props) {
     setFreeShippingPoscodeOptions(freeShippingCodes);
     setLongitude(location.longitude);
     setLatitude(location.latitude);
-    getDefaultTags();
   };
 
   const getDefaultBuildingType = () => {

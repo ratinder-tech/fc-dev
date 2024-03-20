@@ -12,16 +12,16 @@ import { Link, useNavigate } from "react-router-dom";
 
 export function HoldOrders() {
   const fetch = useAuthenticatedFetch();
-  const [isLoading, setIsLoading] = useState(false); 
-  const [selectedOrders, setSelectedOrders] = useState([]); 
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedOrders, setSelectedOrders] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [allHoldOrders, setAllHoldOrders] = useState([]) 
+  const [allHoldOrders, setAllHoldOrders] = useState([]);
   const [filterData, setFilterData] = useState({
     startDate: "",
     endDate: "",
     orderId: "",
     shippingType: "",
-  }); 
+  });
   const navigate = useNavigate();
 
   const getAllOrders = () => {
@@ -115,7 +115,7 @@ export function HoldOrders() {
       : [];
     setSelectedOrders(selectedIds);
   };
- 
+
   return (
     <div className="hold-orders">
       {isLoading && <Loader />}
@@ -177,38 +177,56 @@ export function HoldOrders() {
           </div>
         </div>
         <div className="d-flex align-items-end  ">
-        <button className="fc-yellow-btn pointer"
-        onClick={()=>{ 
-            const filteredOrders = allHoldOrders?.filter((element) => {
+          <button
+            className="fc-yellow-btn pointer"
+            onClick={() => {
+              const filteredOrders = allHoldOrders?.filter((element) => {
                 const orderDate = new Date(element.created_at);
                 const startDate = new Date(filterData.startDate);
                 const endDate = new Date(filterData.endDate);
+
+                startDate.setHours(0, 0, 0, 0);
+                endDate.setHours(23, 59, 59, 999);
+
                 const orderDateCheck =
-                  (filterData.startDate !== "" && filterData.endDate !== "") ? (orderDate >= startDate && orderDate <= endDate) :true;
-                const orderIdCheck =(filterData.orderId !=="")? element.order_number.toString().includes(filterData.orderId.toString()) :true; 
-                   
+                  filterData.startDate !== "" && filterData.endDate !== ""
+                    ? orderDate >= startDate && orderDate <= endDate
+                    : true;
+
+                const orderIdCheck =
+                  filterData.orderId !== ""
+                    ? element.order_number
+                        .toString()
+                        .includes(filterData.orderId.toString())
+                    : true;
+
                 return orderDateCheck && orderIdCheck;
-            });
-            setOrders(filteredOrders);
-        }}
-        
-        >Filter</button>
-      </div>
+              });
+
+              setOrders(filteredOrders);
+            }}
+          >
+            Filter
+          </button>
+        </div>
         <div className="filter-buttons">
           {/* <button> Filter </button> */}
-        
-          <button className="pointer"
-          onClick={()=>{
-            setFilterData({
-              startDate: "",
-              endDate: "",
-              orderId: "",
-              shippingType: "",
-            })
-            setOrders(allHoldOrders)
-          }}
-          
-          > Reset </button>
+
+          <button
+            className="pointer"
+            onClick={() => {
+              setFilterData({
+                startDate: "",
+                endDate: "",
+                orderId: "",
+                shippingType: "",
+              });
+              setOrders(allHoldOrders);
+            }}
+          >
+            {" "}
+            Reset{" "}
+          </button>
         </div>
       </div>
       <div className="order-action-buttons">

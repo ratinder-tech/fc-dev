@@ -2,7 +2,7 @@
 
 client_id = "6b4c7f563a14b50c24714b5687ede505"
 name = "fc-dev-1"
-application_url = "https://rd-means-condition-monster.trycloudflare.com"
+application_url = "https://attitudes-loops-specializing-hair.trycloudflare.com"
 embedded = true
 
 [build]
@@ -16,9 +16,9 @@ scopes = "read_checkouts,read_orders,read_products,read_shipping,unauthenticated
 
 [auth]
 redirect_urls = [
-  "https://rd-means-condition-monster.trycloudflare.com/auth/callback",
-  "https://rd-means-condition-monster.trycloudflare.com/auth/shopify/callback",
-  "https://rd-means-condition-monster.trycloudflare.com/api/auth/callback"
+  "https://attitudes-loops-specializing-hair.trycloudflare.com/auth/callback",
+  "https://attitudes-loops-specializing-hair.trycloudflare.com/auth/shopify/callback",
+  "https://attitudes-loops-specializing-hair.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
